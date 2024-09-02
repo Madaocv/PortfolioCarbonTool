@@ -1,0 +1,88 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holdings Form</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Підключення вашого CSS -->
+    <link href="{% static 'css/holdings-styles.css' %}" rel="stylesheet">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script> -->
+</head>
+<body>
+
+<div class="container form-container">
+    <h3 class="mb-4 text-center">Holdings</h3>
+    <form>
+        <div class="form-group">
+            <label for="selectPortfolio">Select portfolio</label>
+            <select class="form-control" id="selectPortfolio">
+                {% for portfolio in portfolios %}
+                    {% if portfolio.id %}
+                        <option value="{{ portfolio.id }}">{{ portfolio.name }}</option>
+                    {% else %}
+                        <option>{{ portfolio.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="selectReference">Select reference</label>
+            <select class="form-control" id="selectReference">
+                <!-- <option>Select reference</option> -->
+                {% for portfolio in portfolios reversed %}
+                    {% if portfolio.id %}
+                        <option value="{{ portfolio.id }}">{{ portfolio.name }}</option>
+                    {% else %}
+                        <option>{{ portfolio.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="absoluteRelativeSwitch">
+                <label class="custom-control-label" for="absoluteRelativeSwitch">Absolute / Relative</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="companyContributionSwitch">
+                <label class="custom-control-label" for="companyContributionSwitch">Company / Contribution</label>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+<!-- Chart div -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div id="chartdiv"></div>
+            <!-- <canvas id="myChart" width="400" height="400"></canvas> -->
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- AmCharts Libraries -->
+<script src="{% static 'js/amcharts5/index.js' %}"></script>
+<script src="{% static 'js/amcharts5/xy.js' %}"></script>
+<script src="{% static 'js/amcharts5/map.js' %}"></script>
+<script src="{% static 'js/amcharts5/geodata/worldLow.js' %}"></script>
+<script src="{% static 'js/amcharts5/themes/Animated.js' %}"></script>
+<!-- Підключення вашого JS -->
+<script src="{% static 'js/holdings-script.js' %}"></script>
+<!-- <script src="{% static 'js/holdings-chartjs.js' %}"></script> -->
+</body>
+</html>
