@@ -15,11 +15,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()  # Завантаження змінних оточення з файлу .env
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# print(BASE_DIR)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# print(BASE_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -48,6 +45,11 @@ INSTALLED_APPS = [
     'calculations_and_pages',
     'django.forms',
 ]
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -61,6 +63,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'app.urls'
 
+
+# print([os.path.join(BASE_DIR, 'templates')])
 
 TEMPLATES = [
     {
@@ -138,3 +142,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
