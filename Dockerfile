@@ -13,6 +13,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -31,8 +32,14 @@ RUN python manage.py collectstatic --noinput
 # Create superuser
 RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email=os.environ.get('DJANGO_SUPERUSER_EMAIL')).exists() or User.objects.create_superuser(os.environ.get('DJANGO_SUPERUSER_EMAIL'), 'admin', os.environ.get('DJANGO_SUPERUSER_PASSWORD'))" | python manage.py shell
 
-# Start the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app.wsgi:application"]
+# Копіюємо конфігураційний файл для Nginx
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+# # Start the application
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app.wsgi:application"]
+
+# Стартуємо Nginx та Gunicorn разом
+CMD service nginx start && gunicorn --bind 0.0.0.0:8000 app.wsgi:application
 
 # Expose the port
 EXPOSE 8000
