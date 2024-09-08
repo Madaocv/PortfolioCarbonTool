@@ -1,42 +1,42 @@
-# Використовуємо базовий образ Python
+# Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
-# Встановлюємо змінні оточення
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE=app.settings
 
-# Встановлюємо робочу директорію
+# Set working directory
 WORKDIR /app
 
-# Встановлюємо системні залежності
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
     nginx \
     && rm -rf /var/lib/apt/lists/*
 
-# Встановлюємо Python залежності
+# Install Python dependencies
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Копіюємо проект
+# Copy the entire project into the container
 COPY . /app
 
-# Застосовуємо міграції
+# Apply database migrations
 RUN python manage.py migrate
 
-# Збираємо статичні файли
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
 # Create superuser
 RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email=os.environ.get('DJANGO_SUPERUSER_EMAIL')).exists() or User.objects.create_superuser(os.environ.get('DJANGO_SUPERUSER_EMAIL'), 'admin', os.environ.get('DJANGO_SUPERUSER_PASSWORD'))" | python manage.py shell
 
-# Копіюємо конфігураційний файл для Nginx у правильне місце
+# Copy nginx config file
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
-# Запускаємо Nginx та Gunicorn разом
+# Start Nginx and Gunicorn
 CMD service nginx start && gunicorn --bind 0.0.0.0:8000 app.wsgi:application
 
-# Відкриваємо порти
-EXPOSE 8000
+# Expose the port
+EXPOSE 80
