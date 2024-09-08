@@ -36,7 +36,7 @@ RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 # Запускаємо Nginx та Gunicorn на порту 8000
-CMD service nginx start && gunicorn --bind 127.0.0.1:8000 app.wsgi:application
+CMD service nginx start && gunicorn --bind 127.0.0.1:8080 app.wsgi:application
 
 # Відкриваємо порт 8000
 EXPOSE 8000
