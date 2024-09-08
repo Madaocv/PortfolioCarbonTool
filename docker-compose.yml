@@ -11,6 +11,10 @@ services:
       - .:/app
     depends_on:
       - nginx
+    environment:
+      - DJANGO_DEBUG=True
+      - DJANGO_SUPERUSER_EMAIL=portfoliocarbontool@gmail.com
+      - DJANGO_SUPERUSER_PASSWORD=portfoliocarbontoolPassword
 
   nginx:
     image: nginx:alpine
