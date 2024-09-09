@@ -221,16 +221,33 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    // Тут кидаємо помилку, щоб обробити її в catch
+                    throw new Error(data.error || "Something went wrong");
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (!data.error) {
                 updateChart(data);
-                // Hide the loading indicator only if data was successfully fetched and updated
-                hideIndicator();
+                hideIndicator(); // Приховуємо індикатор завантаження
             }
         })
         .catch(error => {
-            console.error("Error fetching data:", error);
+            console.error("Error fetching data:", error.message);  // Відображаємо повідомлення про помилку в консолі
+
+            // Відображаємо повідомлення про помилку
+            const dangerAlert = document.getElementById('danger-alert');
+            dangerAlert.innerText = error.message; // Використовуємо повідомлення з помилки
+            dangerAlert.style.visibility = 'visible'; // Робимо повідомлення видимим
+            // Приховуємо повідомлення через 10 секунд
+            setTimeout(() => {
+                dangerAlert.style.visibility = 'hidden';
+            }, 10000); // 10000 мс = 10 секунд
+            // hideIndicator(); // Приховуємо індикатор завантаження навіть у разі помилки
         });
     }
 
