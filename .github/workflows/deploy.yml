@@ -3,7 +3,7 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - main
+      - master  # Тільки для пушів у гілку main
 
 jobs:
   deploy:
@@ -21,10 +21,18 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
-            cd /path/to/your/project
-            git pull origin main
-            sudo docker build -t portfolio-carbon-tool .  # Білдимо образ
-            sudo docker stop portfolio-carbon-tool || true  # Зупиняємо старий контейнер
-            sudo docker rm portfolio-carbon-tool || true    # Видаляємо старий контейнер
-            sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool portfolio-carbon-tool  # Запускаємо новий контейнер
+            cd /home/ec2-user/PortfolioCarbonTool
+            git pull origin maste  # Оновлюємо код з репозиторія
+            
+            # Білдимо новий образ Docker
+            sudo docker build -t portfolio-carbon-tool . 
+            
+            # Зупиняємо старий контейнер
+            sudo docker stop portfolio-carbon-tool || true
+            
+            # Оновлюємо контейнер без видалення, застосовуючи новий образ
+            sudo docker start portfolio-carbon-tool || sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool portfolio-carbon-tool
+            
+            # (Опціонально) Перезапуск контейнера з новими змінами
+            sudo docker restart portfolio-carbon-tool
           EOF
