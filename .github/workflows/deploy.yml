@@ -22,17 +22,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
             cd /home/ec2-user/PortfolioCarbonTool
-            git pull origin master  # Оновлюємо код з репозиторія
-            
-            # Білдимо новий образ Docker
-            sudo docker build -t portfolio-carbon-tool . 
-            
-            # Зупиняємо старий контейнер
+            git pull origin master  # Оновлюємо код з репозиторія 
             sudo docker stop portfolio-carbon-tool || true
-            
-            # Оновлюємо контейнер без видалення, застосовуючи новий образ
-            sudo docker start portfolio-carbon-tool || sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool portfolio-carbon-tool
-            
-            # (Опціонально) Перезапуск контейнера з новими змінами
-            sudo docker restart portfolio-carbon-tool
+            sudo docker build -t portfolio-carbon-tool .
+            sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool portfolio-carbon-tool  # Запускаємо новий контейнер
           EOF
