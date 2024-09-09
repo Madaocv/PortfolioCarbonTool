@@ -26,8 +26,8 @@ jobs:
             # Зупиняємо і видаляємо контейнер, якщо він вже існує
             sudo docker stop portfolio-carbon-tool || true  # Зупиняємо старий контейнер
             sudo docker rm portfolio-carbon-tool || true    # Видаляємо старий контейнер
-            # Перевіряємо, чи порт не зайнятий, і вивільняємо його, якщо потрібно
-            sudo lsof -ti :8000 | xargs sudo kill -9 || true
+            # Вивільняємо порт 8000, якщо він зайнятий
+            sudo fuser -k 8000/tcp || true
             # Білдимо новий образ
             sudo docker build -t portfolio-carbon-tool .
             # Запускаємо новий контейнер
