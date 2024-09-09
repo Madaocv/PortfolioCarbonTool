@@ -23,9 +23,16 @@ jobs:
           ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
             cd /home/ec2-user/PortfolioCarbonTool
             git pull origin master  # Оновлюємо код з репозиторія 
-            sudo docker stop portfolio-carbon-tool || true  # Зупиняємо старий контейнер
-            sudo docker rm portfolio-carbon-tool || true    # Видаляємо старий контейнер
-            sudo docker build -t portfolio-carbon-tool .    # Білдимо новий образ
+            
+            # Зупиняємо та видаляємо контейнер, якщо він існує
+            if sudo docker ps -q --filter "name=portfolio-carbon-tool"; then
+              sudo docker stop portfolio-carbon-tool
+              sudo docker rm portfolio-carbon-tool
+            fi
+
+            # Білдимо новий образ
+            sudo docker build -t portfolio-carbon-tool .
+
             # Мапимо директорію на хості для збереження бази даних
             sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool \
               -v /home/ec2-user/PortfolioCarbonTool/db.sqlite3:/app/db.sqlite3 \
