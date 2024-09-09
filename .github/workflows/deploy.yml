@@ -22,7 +22,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
             cd /home/ec2-user/PortfolioCarbonTool
-            git pull origin maste  # Оновлюємо код з репозиторія
+            git pull origin master  # Оновлюємо код з репозиторія
             
             # Білдимо новий образ Docker
             sudo docker build -t portfolio-carbon-tool . 
