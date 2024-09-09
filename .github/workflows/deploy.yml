@@ -3,7 +3,7 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - master  # Тільки для пушів у гілку main
+      - master  # Тільки для пушів у гілку master
 
 jobs:
   deploy:
@@ -23,7 +23,11 @@ jobs:
           ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
             cd /home/ec2-user/PortfolioCarbonTool
             git pull origin master  # Оновлюємо код з репозиторія 
-            sudo docker stop portfolio-carbon-tool || true
-            sudo docker build -t portfolio-carbon-tool .
-            sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool portfolio-carbon-tool  # Запускаємо новий контейнер
+            sudo docker stop portfolio-carbon-tool || true  # Зупиняємо старий контейнер
+            sudo docker rm portfolio-carbon-tool || true    # Видаляємо старий контейнер
+            sudo docker build -t portfolio-carbon-tool .    # Білдимо новий образ
+            # Мапимо директорію на хості для збереження бази даних
+            sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool \
+              -v /home/ec2-user/PortfolioCarbonTool/db.sqlite3:/app/db.sqlite3 \
+              portfolio-carbon-tool  # Запускаємо новий контейнер
           EOF
