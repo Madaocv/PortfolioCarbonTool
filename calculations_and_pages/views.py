@@ -4,10 +4,18 @@ from django.views.decorators.http import require_POST
 import json
 from .utils import mock_data, calculation
 from uploads_data.models import FileDataFrame, PortfolioFile
+from django.contrib.auth.decorators import login_required
 import time
 import pandas as pd
+from django.http import HttpResponse
+from pprint import pformat
+@login_required
+def createportfolio(request):
+    text = "Web page in progress..."
+    return render(request, 'createportfolio.html', {'text': text})
 
 
+@login_required
 def holdings(request):
     portfolios = PortfolioFile.objects.all().order_by('uploaded_at')
     
@@ -16,7 +24,18 @@ def holdings(request):
         # {'name': 'Custom Portfolio 2', 'id': 'custom_2'},/
     ]
     combined_portfolios = list(custom_portfolios) + list(portfolios)
-    return render(request, 'holdings.htm', {'portfolios': combined_portfolios})
+    return render(request, 'holdings.html', {'portfolios': combined_portfolios})
+
+@login_required
+def portfolio(request):
+    portfolios = PortfolioFile.objects.all().order_by('uploaded_at')
+    
+    custom_portfolios = [
+        # {'name': 'Custom Portfolio 1', 'id': 'custom_1'},
+        # {'name': 'Custom Portfolio 2', 'id': 'custom_2'},/
+    ]
+    combined_portfolios = list(custom_portfolios) + list(portfolios)
+    return render(request, 'portfolio.html', {'portfolios': combined_portfolios})
 
 
 @require_POST
@@ -43,10 +62,10 @@ def calculate_chart_data(request):
     reference = data.get('reference')
     is_absolute = data.get('absoluteRelative')
     is_company = data.get('companyContribution')
-    # print(f"portfolio: {portfolio}")
-    # print(f"reference: {reference}")
-    # print(f"is_absolute: {is_absolute}")
-    # print(f"is_company: {is_company}")
+    print(f"portfolio: {portfolio}")
+    print(f"reference: {reference}")
+    print(f"is_absolute: {is_absolute}")
+    print(f"is_company: {is_company}")
     try:
 
         if not portfolio:
@@ -68,7 +87,8 @@ def calculate_chart_data(request):
             is_absolute=is_absolute,
             is_company=is_company
         )
-        # print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
+        print(df[['AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO']].head(12))
+        print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
         end = time.time()
         print("Calculation time: ", end - start)
         if is_company:
@@ -86,10 +106,17 @@ def calculate_chart_data(request):
         return JsonResponse(result)
     except (ValueError, PortfolioFile.DoesNotExist) as e:
         return JsonResponse({
-            "error": str(e)
+            "error": str(e)+"WHAT YOU"
         }, status=400)
 
     except Exception as e:
         return JsonResponse({
             "error": "An unexpected error occurred: " + str(e)
         }, status=500)
+        
+        
+@require_POST
+def calculate_portfolio_data(request):
+    data = json.loads(request.body)
+    print(pformat(data))
+    return JsonResponse({"data": []})

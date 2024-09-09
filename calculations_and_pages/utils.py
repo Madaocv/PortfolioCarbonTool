@@ -20,25 +20,6 @@ def custom_formula(bw_value, bz_value):
         return result
 
 
-def calculate_formula_newMove(df, column1, column2):
-    df[column1] = pd.to_numeric(df[column1], errors='coerce')
-    df[column2] = pd.to_numeric(df[column2], errors='coerce')
-    filtered_df = df[(df[column1] < 99999999999999900000) & (df[column1] != 0) & (df[column1].notna()) &
-                    (df[column2] < 99999999999999900000) & (df[column2] != 0) & (df[column2].notna())]
-    filtered_df = filtered_df[(filtered_df[column1] != float('inf')) & 
-                            (filtered_df[column1] != float('-inf')) & 
-                            (filtered_df[column2] != float('inf')) & 
-                            (filtered_df[column2] != float('-inf'))]
-    numerator = (filtered_df[column1] * filtered_df[column2]).sum()
-    if numerator == float('inf') or numerator == float('-inf') or pd.isna(numerator):
-        return float('nan')
-    denominator = filtered_df[column2].sum()
-    if denominator == 0 or pd.isna(denominator):
-        return 0
-    else:
-        return numerator / denominator
-
-
 def calculate_formula_new_minus(df, column1, column2):
     df[column1] = pd.to_numeric(df[column1], errors='coerce')
     df[column2] = pd.to_numeric(df[column2], errors='coerce')
@@ -101,7 +82,24 @@ def calculate_formula_new(df, column1, column2):
         return 0
     else:
         return numerator / denominator
-
+    
+# def calculate_formula_newMove(df, column1, column2):
+#     df[column1] = pd.to_numeric(df[column1], errors='coerce')
+#     df[column2] = pd.to_numeric(df[column2], errors='coerce')
+#     filtered_df = df[(df[column1] < 99999999999999900000) & (df[column1] != 0) & (df[column1].notna()) &
+#                     (df[column2] < 99999999999999900000) & (df[column2] != 0) & (df[column2].notna())]
+#     filtered_df = filtered_df[(filtered_df[column1] != float('inf')) & 
+#                             (filtered_df[column1] != float('-inf')) & 
+#                             (filtered_df[column2] != float('inf')) & 
+#                             (filtered_df[column2] != float('-inf'))]
+#     numerator = (filtered_df[column1] * filtered_df[column2]).sum()
+#     if numerator == float('inf') or numerator == float('-inf') or pd.isna(numerator):
+#         return float('nan')
+#     denominator = filtered_df[column2].sum()
+#     if denominator == 0 or pd.isna(denominator):
+#         return 0
+#     else:
+#         return numerator / denominator
 
 def mock_data(swichto=None):
     names = [
@@ -206,19 +204,6 @@ def automated_calculation(df=None, portfolio_name=None, reference_name=None):
 
 
 def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_company=None, portfolio_name=None, reference_name=None):
-    df['N'] = df['C'].add(df['D'], fill_value=0)
-    df['O'] = df['N'].add(df['E'], fill_value=0)
-    df['P'] = df['N'].div(df['F'], fill_value=0).replace([float('inf'), -float('inf')], None)
-    df['Q'] = df['E'].div(df['F'], fill_value=0)
-    df['R'] = df['O'].div(df['F'], fill_value=0)
-    df['S'] = df['N'].mul(df['H'], fill_value=0)
-    df['T'] = df['S'].div(df['F'], fill_value=0)
-    df['U'] = df['H'].fillna(pd.NA)
-    df['V'] = df['I'].fillna(pd.NA)
-    df['W'] = df['J'].fillna(pd.NA)
-    df['X'] = df['K'].fillna(pd.NA)
-    df['Y'] = df['L'].fillna(pd.NA)
-    s2 = time.time()
     df['A'] = df['A'].str.strip()
     # portfolio
     portfolio_df = portfolio.dropna(subset=['ISIN', 'Weight'], how='all')
@@ -231,8 +216,26 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     reference_df = reference.dropna(subset=['ISIN', 'Weight'], how='all')
     reference_df['ISIN'] = reference_df['ISIN'].str.strip()
     df['AD'] = df['A'].map(reference_df.set_index('ISIN')['Weight'])
-    # df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
-    # print(df[['P', 'AD']].head(50))
+    # Filter df to keep only rows with ISINs in both portfolio_df and reference_df
+    # valid_isins = set(portfolio_df['ISIN']).intersection(reference_df['ISIN'])
+    # df = df[df['A'].isin(valid_isins)].copy()
+    # print(df.shape)
+    
+    df['N'] = df['C'].add(df['D'], fill_value=0)
+    df['O'] = df['N'].add(df['E'], fill_value=0)
+    df['P'] = df['N'].div(df['F'], fill_value=0).replace([float('inf'), -float('inf')], None)
+    df['Q'] = df['E'].div(df['F'], fill_value=0)
+    df['R'] = df['O'].div(df['F'], fill_value=0)
+    df['S'] = df['N'].mul(df['H'], fill_value=0)
+    df['T'] = df['S'].div(df['F'], fill_value=0)
+    df['U'] = df['H'].fillna(pd.NA)
+    df['V'] = df['I'].fillna(pd.NA)
+    df['W'] = df['J'].fillna(pd.NA)
+    df['X'] = df['K'].fillna(pd.NA)
+    df['Y'] = df['L'].fillna(pd.NA)
+
+
+    
     af_values = [
         portfolio_name,
         # "SMFE",
@@ -295,7 +298,7 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df.loc[df['AF'] == 'Portfolio S12_b', 'AH'] = - df.loc[df['AF'] == 'Portfolio S12', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AH'] = df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio reduction_b', 'AH'] = df.loc[df['AF'] == 'Portfolio reduction_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio reduction', 'AG'].values[0]
-    print(time.time() - s2)
+    # print(time.time() - s2)
 
     static_value = df.loc[df['AF'] == reference_name, 'AG'].values[0]
     mask = pd.notna(df['P']) & pd.notna(df['AA'])
@@ -353,16 +356,22 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df.iloc[0:0+len(bv_values), df.columns.get_loc('BV')] = bv_values
 
     df['BW'] = None 
-    df.loc[df['BV'] == 'WACI 12', 'BW'] = calculate_formula_newMove(df, 'P', 'AA')
+    df.loc[df['BV'] == 'WACI 12', 'BW'] = calculate_formula_new(df, 'P', 'AA')
 
     df['BX'] = None 
-    df.loc[df['BV'] == 'WACI 12', 'BX'] = calculate_formula_newMove(df, 'P', 'AB')
+    df.loc[df['BV'] == 'WACI 12', 'BX'] = calculate_formula_new(df, 'P', 'AB')
 
     df['BY'] = None 
-    df.loc[df['BV'] == 'WACI 12', 'BY'] = calculate_formula_newMove(df, 'P', 'AC')
+    df.loc[df['BV'] == 'WACI 12', 'BY'] = calculate_formula_new(df, 'P', 'AC')
 
     df['BZ'] = None 
-    df.loc[df['BV'] == 'WACI 12', 'BZ'] = calculate_formula_newMove(df, 'P', 'AD')
+    df.loc[df['BV'] == 'WACI 12', 'BZ'] = calculate_formula_new(df, 'P', 'AD')
+    print("*"*10)
+    print(calculate_formula(df, 'P', 'AD'))
+    print("*"*10)
+    print(calculate_formula_new(df, 'P', 'AD'))
+    print("*"*10)
+    # print("*"*10)
 
     df.loc[df['BV'] == 'WACI 12 rel', 'BW'] = df.loc[df['BV'] == 'WACI 12', 'BW'].values[0] - df.loc[df['BV'] == 'WACI 12', 'BZ'].values[0]
     df.loc[df['BV'] == 'WACI 12 rel', 'BX'] = df.loc[df['BV'] == 'WACI 12', 'BX'].values[0] - df.loc[df['BV'] == 'WACI 12', 'BZ'].values[0]
@@ -379,10 +388,10 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df.loc[df['BV'] == 'Avoided intensity rel', 'BY'] = df.loc[df['BV'] == 'Avoided intensity', 'BY'].values[0] - df.loc[df['BV'] == 'Avoided intensity', 'BZ'].values[0]
     df.loc[df['BV'] == 'Avoided intensity rel', 'BZ'] = df.loc[df['BV'] == 'Avoided intensity', 'BZ'].values[0] - df.loc[df['BV'] == 'Avoided intensity', 'BZ'].values[0]
 
-    df.loc[df['BV'] == 'WACI', 'BW'] = calculate_formula_newMove(df, 'R', 'AA')
-    df.loc[df['BV'] == 'WACI', 'BX'] = calculate_formula_newMove(df, 'R', 'AB')
-    df.loc[df['BV'] == 'WACI', 'BY'] = calculate_formula_newMove(df, 'R', 'AC')
-    df.loc[df['BV'] == 'WACI', 'BZ'] = calculate_formula_newMove(df, 'R', 'AD')
+    df.loc[df['BV'] == 'WACI', 'BW'] = calculate_formula_new(df, 'R', 'AA')
+    df.loc[df['BV'] == 'WACI', 'BX'] = calculate_formula_new(df, 'R', 'AB')
+    df.loc[df['BV'] == 'WACI', 'BY'] = calculate_formula_new(df, 'R', 'AC')
+    df.loc[df['BV'] == 'WACI', 'BZ'] = calculate_formula_new(df, 'R', 'AD')
 
     df.loc[df['BV'] == 'WACI rel', 'BW'] = custom_formula(df.loc[df['BV'] == 'WACI', 'BW'].values[0], df.loc[df['BV'] == 'WACI', 'BZ'].values[0])
     df.loc[df['BV'] == 'WACI rel', 'BX'] = custom_formula(df.loc[df['BV'] == 'WACI', 'BX'].values[0], df.loc[df['BV'] == 'WACI', 'BZ'].values[0])
