@@ -26,8 +26,8 @@ SITE_ID = 1
 SECRET_KEY = 'django-insecure-1fz$t3&e!*zd4oa&k+1d=#kei=p!qgef&xul70q&yc@vcf4bup'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = True
+# DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 # print(DEBUG)
 ALLOWED_HOSTS = ["*"]
 
