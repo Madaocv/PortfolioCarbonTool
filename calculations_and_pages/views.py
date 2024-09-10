@@ -11,8 +11,9 @@ from django.http import HttpResponse
 from pprint import pformat
 @login_required
 def createportfolio(request):
-    text = "Web page in progress..."
-    return render(request, 'createportfolio.html', {'text': text})
+    is_in_development = True
+
+    return render(request, 'createportfolio.html', {'is_in_development': is_in_development})
 
 
 @login_required
@@ -35,7 +36,11 @@ def portfolio(request):
         # {'name': 'Custom Portfolio 2', 'id': 'custom_2'},/
     ]
     combined_portfolios = list(custom_portfolios) + list(portfolios)
-    return render(request, 'portfolio.html', {'portfolios': combined_portfolios})
+    is_in_development = True
+    return render(request, 'portfolio.html', {
+        'portfolios': combined_portfolios,
+        'is_in_development': is_in_development
+    })
 
 
 @require_POST
