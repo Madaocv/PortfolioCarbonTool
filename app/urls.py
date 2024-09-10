@@ -19,10 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from django.contrib.auth import views as auth_views
 import os
 urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),
     path('', include('uploads_data.urls')),
     path('', include('calculations_and_pages.urls')), 
