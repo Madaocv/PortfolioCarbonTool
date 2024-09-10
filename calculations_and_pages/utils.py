@@ -366,11 +366,11 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
 
     df['BZ'] = None 
     df.loc[df['BV'] == 'WACI 12', 'BZ'] = calculate_formula_new(df, 'P', 'AD')
-    print("*"*10)
-    print(calculate_formula(df, 'P', 'AD'))
-    print("*"*10)
-    print(calculate_formula_new(df, 'P', 'AD'))
-    print("*"*10)
+    # print("*"*10)
+    # print(calculate_formula(df, 'P', 'AD'))
+    # print("*"*10)
+    # print(calculate_formula_new(df, 'P', 'AD'))
+    # print("*"*10)
     # print("*"*10)
 
     df.loc[df['BV'] == 'WACI 12 rel', 'BW'] = df.loc[df['BV'] == 'WACI 12', 'BW'].values[0] - df.loc[df['BV'] == 'WACI 12', 'BZ'].values[0]

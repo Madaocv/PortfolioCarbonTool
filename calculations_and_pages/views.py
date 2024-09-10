@@ -67,10 +67,10 @@ def calculate_chart_data(request):
     reference = data.get('reference')
     is_absolute = data.get('absoluteRelative')
     is_company = data.get('companyContribution')
-    print(f"portfolio: {portfolio}")
-    print(f"reference: {reference}")
-    print(f"is_absolute: {is_absolute}")
-    print(f"is_company: {is_company}")
+    # print(f"portfolio: {portfolio}")
+    # print(f"reference: {reference}")
+    # print(f"is_absolute: {is_absolute}")
+    # print(f"is_company: {is_company}")
     try:
 
         if not portfolio:
@@ -92,10 +92,10 @@ def calculate_chart_data(request):
             is_absolute=is_absolute,
             is_company=is_company
         )
-        print(df[['AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO']].head(12))
-        print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
+        # print(df[['AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO']].head(12))
+        # print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
         end = time.time()
-        print("Calculation time: ", end - start)
+        # print("Calculation time: ", end - start)
         if is_company:
             df_filtered = df[[df.columns[1], "AV", "AY"]].dropna(subset=["AV", "AY"])
         else:
