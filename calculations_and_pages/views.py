@@ -12,7 +12,6 @@ from pprint import pformat
 @login_required
 def createportfolio(request):
     is_in_development = True
-
     return render(request, 'createportfolio.html', {'is_in_development': is_in_development})
 
 
