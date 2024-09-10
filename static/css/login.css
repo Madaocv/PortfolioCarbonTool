@@ -1,0 +1,36 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #17a2b8;
+    height: 100vh;
+}
+#login {
+    margin-top: 50px;
+}
+#login .container #login-row #login-column #login-box {
+    margin-top: 100px;
+    max-width: 600px;
+    border: 1px solid #9C9C9C;
+    background-color: #EAEAEA;
+    padding-bottom: 50px;
+}
+#login .container #login-row #login-column #login-box #login-form {
+    padding: 20px;
+}
+#login .container #login-row #login-column #login-box #login-form #register-link {
+    margin-top: -85px;
+}
+/* Додано для стилізації повідомлень */
+.messages {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    text-align: center; /* Вирівнювання тексту по центру */
+    font-size: 14px; /* Розмір шрифту */
+    line-height: 1.5; /* Висота рядка */
+    min-height: 40px; /* Мінімальна висота повідомлення */
+}

@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from . import views
 urlpatterns = [
+    path('register/', views.register, name='register'),
+    path('login/', views.login_view, name='login'),
     path('admin/', admin.site.urls),
     path('', include('uploads_data.urls')),
     path('', include('calculations_and_pages.urls')), 

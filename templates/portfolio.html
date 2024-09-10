@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Portfolio
+{% endblock %}
+
+{% block css %}
+<style>
+    #chartdiv {
+      width: 100%;
+      height: 500px;
+    }
+    #sortable-portfolios .input-group {
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    #sortable-portfolios .input-group:hover {
+        background-color: #e2e6ea; /* Зміна фону при наведенні */
+        border-color: #adb5bd; /* Зміна кольору рамки при наведенні */
+    }
+    
+    #sortable-portfolios .form-check-input {
+        cursor: pointer; /* Курсор "вказівник" при наведенні на чекбокс */
+    }
+    
+    #sortable-portfolios .form-control {
+        background-color: #f0f2f5;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding-left: 10px; /* Відступ тексту від краю */
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    #sortable-portfolios .input-group-text {
+        background-color: #f0f2f5;
+        border: 1px solid #ced4da;
+        border-right: none; /* Видаляє правий край у елемента з чекбоксом */
+    }
+    
+    #sortable-portfolios .input-group:hover .form-control,
+    #sortable-portfolios .input-group:hover .input-group-text {
+        background-color: #e2e6ea;
+        border-color: #adb5bd;
+    }
+    
+    #sortable-portfolios .input-group {
+        cursor: move; /* Курсор "перетягування" */
+    }
+    #sortable-portfolios .input-group {
+    padding: 8px; /* Зменшений відступ */
+    border-radius: 8px; /* Менше округлення кутів */
+    font-size: 0.875rem; /* Менший шрифт */
+    margin-bottom: 12px; /* Відстань між елементами */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#sortable-portfolios .input-group:hover {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+}
+
+#sortable-portfolios .form-check-input {
+    cursor: pointer;
+    width: 20px; /* Зменшена ширина чекбокса */
+    height: 20px; /* Зменшена висота чекбокса */
+}
+
+#sortable-portfolios .form-control {
+    background-color: #f0f2f5;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding-left: 8px; /* Зменшений відступ тексту */
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem; /* Зменшений шрифт */
+}
+
+#sortable-portfolios .input-group-text {
+    background-color: #f0f2f5;
+    border: 1px solid #ced4da;
+    border-right: none;
+}
+
+#sortable-portfolios .input-group:hover .form-control,
+#sortable-portfolios .input-group:hover .input-group-text {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+}
+
+#sortable-portfolios .input-group {
+    cursor: move;
+}
+
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container form-container">
+    <h3 class="col-8 text-center">Portfolio</h3>
+    <div class="col-md-16">
+    <form id="portfolio-form" method="POST">
+        {% csrf_token %}
+        <div class="form-group" id="sortable-portfolios">
+            <label for="portfolios" class="block text-gray-700 font-bold mb-2">Select Portfolios:</label>
+            {% for portfolio in portfolios %}
+                <div class="flex items-center mb-2 bg-gray-100 p-2 rounded-md shadow-sm cursor-move hover:bg-gray-200 transition duration-200">
+                    <input type="checkbox" name="portfolios" value="{{ portfolio.id }}" id="portfolio{{ forloop.counter }}" class="h-5 w-5 text-blue-600 cursor-pointer">
+                    <label for="portfolio{{ forloop.counter }}" class="ml-3 text-gray-900 font-medium">{{ portfolio.name }}</label>
+                </div>
+            {% endfor %}
+        </div>
+        
+        
+    </form>
+    </div>
+</div>
+
+
+
+<!-- Chart div -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div id="danger-alert" class="alert alert-danger" role="alert" style="visibility: hidden;">
+                Something went wrong—check it out!
+            </div>
+
+            <div id="chartdiv1"></div>
+            <div id="chartdiv2"></div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/portfolio-script.js' %}"></script>
+{#<script src="{% static 'js/portfolio-form-script.js' %}"></script>#}
+{#<script src="{% static 'js/portfolio-move-inputs.js' %}"></script>#}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+{% endblock %}

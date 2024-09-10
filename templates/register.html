@@ -1,51 +1,74 @@
-<!-- templates/register.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}"> <!-- Підключаємо CSS такий самий, як для логіну -->
 </head>
 <body>
-    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-        <div class="col-md-6">
-            <h2 class="text-center">Register</h2>
-            <form method="POST" novalidate>
-                {% csrf_token %}
-
-                <!-- Відображення загальних помилок форми -->
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
+    <div id="login">  <!-- Використовуємо таку ж структуру, як і в логіні -->
+        <h3 class="text-center text-white pt-5">Register form</h3>
+        <div class="container">
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" class="col-md-12">
+                        <!-- Виведення повідомлень -->
+                        {% if messages %}
+                            <div class="messages">
+                                {% for message in messages %}
+                                    <p class="{% if message.tags %}alert alert-{{ message.tags }}{% endif %}">
+                                        {{ message }}
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <form id="login-form" class="form" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username" class="text-info">Username:</label><br>
+                                {{ form.email }}  <!-- Поле для вводу username -->
+                                {% if form.email.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.email.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="text-info">Password:</label><br>
+                                {{ form.password }}  <!-- Поле для вводу password -->
+                                {% if form.password.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.password.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="remember-me" class="text-info">
+                                    <!-- <span>Remember me</span>
+                                    <span><input id="remember-me" name="remember-me" type="checkbox"></span> -->
+                                </label><br>
+                                <button type="submit" class="btn btn-info btn-md w-100">Register</button>
+                            </div>
+                            <div id="register-link" class="text-right">
+                                <a href="{% url 'login' %}" class="text-info">Already have an account? Login here</a>
+                            </div>
+                            <!-- Глобальні помилки форми -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                        </form>
                     </div>
-                {% endif %}
-
-                <!-- Відображення помилок для поля email -->
-                <div class="mb-3">
-                    {{ form.email.label_tag }}
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div class="text-danger">
-                            {{ form.email.errors }}
-                        </div>
-                    {% endif %}
                 </div>
-
-                <!-- Відображення помилок для поля password -->
-                <div class="mb-3">
-                    {{ form.password.label_tag }}
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="text-danger">
-                            {{ form.password.errors }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 mt-3">Register</button>
-            </form>
+            </div>
         </div>
     </div>
 </body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 </html>
