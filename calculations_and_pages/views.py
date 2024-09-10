@@ -106,7 +106,7 @@ def calculate_chart_data(request):
         return JsonResponse(result)
     except (ValueError, PortfolioFile.DoesNotExist) as e:
         return JsonResponse({
-            "error": str(e)+"WHAT YOU"
+            "error": str(e)
         }, status=400)
 
     except Exception as e:
