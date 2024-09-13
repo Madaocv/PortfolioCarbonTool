@@ -7,13 +7,14 @@
 
 url: http://13.60.137.38/admin/login/?next=/admin/
 
+After login admin can provide the actions for uplad the data
 ![inks to upload data](./test_upload_data/img/admin_upload_data_company.png)
-
+There is the instruction for add porfolio
 ![upload portfolio](./test_upload_data/img/admin_upload_portfolio.png)
-
+There admin can upload companies data
 ![upload company](./test_upload_data/img/admin_upload_company_data.png)
 
-files to admin upload
+Examples files to admin upload
 [example portfolio file](./test_upload_data/GETUpload.xlsx)
 
 [example company data file](./test_upload_data/ReferenceDataUpload.xlsx)
