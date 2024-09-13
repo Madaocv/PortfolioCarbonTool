@@ -4,16 +4,18 @@
 
 ### admin section
 ![login for admins](./test_upload_data/img/admin_login.png)
-use this credentials for admin login:
 
 url: http://13.60.137.38/admin/login/?next=/admin/
 
 ![inks to upload data](./test_upload_data/img/admin_upload_data_company.png)
+
 ![upload portfolio](./test_upload_data/img/admin_upload_portfolio.png)
+
 ![upload company](./test_upload_data/img/admin_upload_company_data.png)
 
 files to admin upload
 [example portfolio file](./test_upload_data/GETUpload.xlsx)
+
 [example company data file](./test_upload_data/ReferenceDataUpload.xlsx)
 
 ### user interface 
