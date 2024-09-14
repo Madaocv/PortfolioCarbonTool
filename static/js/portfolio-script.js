@@ -1,8 +1,12 @@
+let root1, root2; // глобальні змінні для збереження кореневих елементів
+
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('*'.repeat(10));
   // Ініціалізація Sortable.js
   var sortable = new Sortable(document.getElementById('sortable-portfolios'), {
-      animation: 150,
+      animation: 50,
       onEnd: function(evt) {
+          updateColors();
           submitForm(); // Виклик submitForm після перетягування
       }
   });
@@ -14,11 +18,45 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('input[name="portfolios"]').forEach((checkbox) => {
       checkbox.addEventListener('change', function() {
           console.log('Checkbox changed:', checkbox.value, 'Checked:', checkbox.checked); // Лог для перевірки
+          updateColors();
           submitForm(); // Виклик submitForm при зміні стану чекбоксу
       });
   });
 });
+  // Функція оновлення кольорів і тексту
+  function updateColors() {
+    const selectedCheckboxes = Array.from(document.querySelectorAll('input[name="portfolios"]:checked'));
+    const portfolioItems = document.querySelectorAll('#sortable-portfolios .flex'); // Клас для всіх sortable об'єктів
 
+    // Спочатку скидаємо всі стилі
+    portfolioItems.forEach(item => {
+      item.classList.remove('bg-blue-300', 'bg-red-300', 'hover:bg-blue-200', 'hover:bg-red-200'); // Видаляємо кольори
+      const label = item.querySelector('label');
+    //   label.innerText = item.getAttribute('data-original-text'); // Скидаємо текст до початкового
+    });
+
+    if (selectedCheckboxes.length === 1) {
+      // Якщо вибрано тільки один чекбокс, робимо об'єкт синім
+      const selectedItem = selectedCheckboxes[0].closest('.flex');
+    //   selectedItem.classList.add('bg-blue-300');
+      selectedItem.classList.add('bg-blue-300', 'hover:bg-blue-200');
+    } else if (selectedCheckboxes.length > 1) {
+      // Якщо вибрано більше одного об'єкта
+      selectedCheckboxes.forEach((checkbox, index) => {
+        const item = checkbox.closest('.flex');
+        const label = item.querySelector('label');
+        if (index === selectedCheckboxes.length - 1) {
+          // Останній об'єкт стає червоним і до тексту додається "Reference"
+        //   item.classList.add('bg-red-300');
+          item.classList.add('bg-red-300', 'hover:bg-red-200');
+        //   label.innerText = label.innerText + " (Reference)";
+        } else {
+          // Інші об'єкти стають синіми
+          item.classList.add('bg-blue-300');
+        }
+      });
+    }
+  }
 function submitForm() {
   console.log('submitForm called');
   const selectedPortfolios = [];
@@ -63,24 +101,29 @@ function submitForm() {
   .then(data => {
       console.log('Data received:', data);
 
+      // Очищаємо старі графіки
+      if (root1) root1.dispose();
+      if (root2) root2.dispose();
+
       // Побудова графіків на основі отриманих даних
       const mockData1 = [
         { x: 'A', y: 2 },
         { x: 'B', y: 1 },
         { x: 'C', y: 3 },
         { x: 'D', y: 2.5 }
-    ];
-  
-    const mockData2 = [
+        ];
+
+      const mockData2 = [
         { x: 'A', y: 4 },
         { x: 'B', y: 2.5 },
         { x: 'C', y: 5 },
         { x: 'D', y: 3.5 }
-    ];
-  
-    // Використовуємо замокані дані для побудови графіків
-    buildChart1(mockData1);
-    buildChart2(mockData2);
+        ];
+
+      // Використовуємо замокані дані для побудови графіків
+      root1 = buildChart("chartdiv1", mockData1);
+      root2 = buildChart("chartdiv2", mockData2);
+      console.log("Hello world!");
   })
   .catch((error) => {
       console.error("Error:", error);
@@ -103,60 +146,44 @@ function getCookie(name) {
 }
 
 // Статична функція побудови графіків
-function buildChart1(chartData) {
-    // chart 1
-    const root1 = am5.Root.new("chartdiv1");
-    const chart1 = root1.container.children.push(
-        am5xy.XYChart.new(root1, {})
+function buildChart(div, chartData) {
+    // Очищаємо контейнер для графіка
+    cleanChartContainer(div);
+
+    let root = am5.Root.new(div); // Локальна змінна root
+
+    const chart = root.container.children.push(
+        am5xy.XYChart.new(root, {})
     );
 
-    const xAxis1 = chart1.xAxes.push(am5xy.CategoryAxis.new(root1, {
-        renderer: am5xy.AxisRendererX.new(root1, {}),
+    const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+        renderer: am5xy.AxisRendererX.new(root, {}),
         categoryField: "x"
     }));
-    xAxis1.data.setAll(chartData);
+    xAxis.data.setAll(chartData);
 
-    const yAxis1 = chart1.yAxes.push(am5xy.ValueAxis.new(root1, {
-        renderer: am5xy.AxisRendererY.new(root1, {})
+    const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
     }));
 
-    const series1 = chart1.series.push(
-        am5xy.LineSeries.new(root1, {
-            xAxis: xAxis1,
-            yAxis: yAxis1,
+    const series = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            xAxis: xAxis,
+            yAxis: yAxis,
             valueYField: "y",
             categoryXField: "x",
         })
     );
 
-    series1.data.setAll(chartData);
+    series.data.setAll(chartData);
+    
+    return root; // Повертаємо root для подальшого очищення
 }
 
-function buildChart2(chartData) {
-    // chart 2
-    const root2 = am5.Root.new("chartdiv2");
-    const chart2 = root2.container.children.push(
-        am5xy.XYChart.new(root2, {})
-    );
-
-    const xAxis2 = chart2.xAxes.push(am5xy.CategoryAxis.new(root2, {
-        renderer: am5xy.AxisRendererX.new(root2, {}),
-        categoryField: "x"
-    }));
-    xAxis2.data.setAll(chartData);
-
-    const yAxis2 = chart2.yAxes.push(am5xy.ValueAxis.new(root2, {
-        renderer: am5xy.AxisRendererY.new(root2, {})
-    }));
-
-    const series2 = chart2.series.push(
-        am5xy.ColumnSeries.new(root2, {
-            xAxis: xAxis2,
-            yAxis: yAxis2,
-            valueYField: "y",
-            categoryXField: "x",
-        })
-    );
-
-    series2.data.setAll(chartData);
+// Функція очищення контейнера
+function cleanChartContainer(id) {
+  let chartContainer = document.getElementById(id);
+  if (chartContainer) {
+    chartContainer.innerHTML = ''; // Очищаємо вміст контейнера
+  }
 }
