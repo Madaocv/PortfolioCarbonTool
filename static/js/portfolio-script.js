@@ -159,15 +159,15 @@ function buildChart2(div, chartData, chartTitles) {
     }));
 
     // Додаємо основний заголовок
-    var title = container.children.push(am5.Label.new(root2, {
-        text: chartTitles.maintitle || '',
-        fontSize: 25,
-        fontWeight: "bold",
-        textAlign: "center",
-        x: am5.p50,
-        centerX: am5.p50,
-        paddingBottom: 10
-    }));
+    // var title = container.children.push(am5.Label.new(root2, {
+    //     text: chartTitles.maintitle || '',
+    //     fontSize: 25,
+    //     fontWeight: "bold",
+    //     textAlign: "center",
+    //     x: am5.p50,
+    //     centerX: am5.p50,
+    //     paddingBottom: 10
+    // }));
 
     var chartContainer = container.children.push(am5.Container.new(root2, {
         layout: root2.horizontalLayout,
