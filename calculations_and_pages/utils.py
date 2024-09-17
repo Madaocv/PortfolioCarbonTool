@@ -4,6 +4,7 @@ import time
 import string
 from pprint import pformat
 
+
 def sumproduct(df, col1, col2):
     df[col1] = pd.to_numeric(df[col1], errors='coerce')
     df[col2] = pd.to_numeric(df[col2], errors='coerce')
@@ -83,24 +84,7 @@ def calculate_formula_new(df, column1, column2):
         return 0
     else:
         return numerator / denominator
-    
-# def calculate_formula_newMove(df, column1, column2):
-#     df[column1] = pd.to_numeric(df[column1], errors='coerce')
-#     df[column2] = pd.to_numeric(df[column2], errors='coerce')
-#     filtered_df = df[(df[column1] < 99999999999999900000) & (df[column1] != 0) & (df[column1].notna()) &
-#                     (df[column2] < 99999999999999900000) & (df[column2] != 0) & (df[column2].notna())]
-#     filtered_df = filtered_df[(filtered_df[column1] != float('inf')) & 
-#                             (filtered_df[column1] != float('-inf')) & 
-#                             (filtered_df[column2] != float('inf')) & 
-#                             (filtered_df[column2] != float('-inf'))]
-#     numerator = (filtered_df[column1] * filtered_df[column2]).sum()
-#     if numerator == float('inf') or numerator == float('-inf') or pd.isna(numerator):
-#         return float('nan')
-#     denominator = filtered_df[column2].sum()
-#     if denominator == 0 or pd.isna(denominator):
-#         return 0
-#     else:
-#         return numerator / denominator
+
 
 def mock_data(swichto=None):
     names = [
@@ -217,10 +201,6 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     reference_df = reference.dropna(subset=['ISIN', 'Weight'], how='all')
     reference_df['ISIN'] = reference_df['ISIN'].str.strip()
     df['AD'] = df['A'].map(reference_df.set_index('ISIN')['Weight'])
-    # Filter df to keep only rows with ISINs in both portfolio_df and reference_df
-    # valid_isins = set(portfolio_df['ISIN']).intersection(reference_df['ISIN'])
-    # df = df[df['A'].isin(valid_isins)].copy()
-    # print(df.shape)
     
     df['N'] = df['C'].add(df['D'], fill_value=0)
     df['O'] = df['N'].add(df['E'], fill_value=0)
@@ -235,8 +215,6 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df['X'] = df['K'].fillna(pd.NA)
     df['Y'] = df['L'].fillna(pd.NA)
 
-
-    
     af_values = [
         portfolio_name,
         # "SMFE",
@@ -367,12 +345,6 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
 
     df['BZ'] = None 
     df.loc[df['BV'] == 'WACI 12', 'BZ'] = calculate_formula_new(df, 'P', 'AD')
-    # print("*"*10)
-    # print(calculate_formula(df, 'P', 'AD'))
-    # print("*"*10)
-    # print(calculate_formula_new(df, 'P', 'AD'))
-    # print("*"*10)
-    # print("*"*10)
 
     df.loc[df['BV'] == 'WACI 12 rel', 'BW'] = df.loc[df['BV'] == 'WACI 12', 'BW'].values[0] - df.loc[df['BV'] == 'WACI 12', 'BZ'].values[0]
     df.loc[df['BV'] == 'WACI 12 rel', 'BX'] = df.loc[df['BV'] == 'WACI 12', 'BX'].values[0] - df.loc[df['BV'] == 'WACI 12', 'BZ'].values[0]
@@ -428,7 +400,7 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BX'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BX'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BY'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BY'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BZ'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
-    print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
+    # print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
     return df
 
 
@@ -519,9 +491,6 @@ def calculation_prtfolio(df=None, portfolios=None):
             df2.loc[df2['BV'] == '% change through 2030 rel', col] = (
                 df2.loc[df2['BV'] == '% change through 2030', col].values[0] - df2.loc[df2['BV'] == '% change through 2030', last_column].values[0]
             )
-    print('.'*50)
-    print(df2.head(12))  # Виводимо результат для перегляду
-    print('.'*50)
     return df2, df, columns
 def prepare_data_for_response(df2, names):
     result = []
@@ -560,10 +529,6 @@ def convert_to_json_ready(value):
     return value
 
 def waterfall_chunk(df=None, portfolio_name=None, reference_name=None):
-    print(df.head())
-    print(df.columns)
-    print(f"portfolio_name: {portfolio_name}")
-    print(f"reference_name: {reference_name}")
     af_values = [
         portfolio_name,
         # "SMFE",
@@ -601,8 +566,6 @@ def waterfall_chunk(df=None, portfolio_name=None, reference_name=None):
     df.loc[df['AF'] == reference_name, 'AG'] = calculate_formula_new(df, 'P', reference_name)
     
     for col_base, col_target in zip(base_columns, columns_to_calculate):
-        print(f"col_target: {col_target}")
-        print(f"col_base: {col_base}")
         df[col_target] = None
         # print('-'*50)
         # print(col_base)
@@ -642,14 +605,11 @@ def waterfall_chunk(df=None, portfolio_name=None, reference_name=None):
     df.loc[df['AF'] == 'Portfolio reduction_b', 'AG'] = df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio 2030_c', 'AG'] = df.loc[df['AF'] == 'Portfolio 2030', 'AG'].values[0]
 
-
     df.loc[df['AF'] == 'Reference avoided emissions_a', 'AH'] = - df.loc[df['AF'] == 'Reference avoided emissions', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio S12_b', 'AH'] = - df.loc[df['AF'] == 'Portfolio S12', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AH'] = df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0]
     df.loc[df['AF'] == 'Portfolio reduction_b', 'AH'] = df.loc[df['AF'] == 'Portfolio reduction_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio reduction', 'AG'].values[0]
-    print("#"*50)
-    print(df[['AF', 'AG', 'AH', "AI", "AJ"]].head(20))
-    print("#"*50)
+
     # Створюємо словник для результатів
     result = []
 

@@ -52,8 +52,8 @@ def calculate_chart_data(request):
             data_frames.append(df)
         except Exception as e:
             print(f"Error processing FileDataFrame ID: {file_data_frame.id} - {e}")
-    if data_frames:
-        combined_df = pd.concat(data_frames, ignore_index=True)
+    if len(data_frames) > 1:
+        df = pd.concat(data_frames, ignore_index=True)
     data = json.loads(request.body)
     portfolio = data.get('portfolio')
     reference = data.get('reference')
@@ -127,8 +127,8 @@ def calculate_portfolio_data(request):
             data_frames.append(df)
         except Exception as e:
             print(f"Error processing FileDataFrame ID: {file_data_frame.id} - {e}")
-    if data_frames:
-        combined_df = pd.concat(data_frames, ignore_index=True)
+    if len(data_frames) > 1:
+        df = pd.concat(data_frames, ignore_index=True)
     data = json.loads(request.body)
     portfolio = data.get('portfolios', [])
     portfolio_filter = [obj for obj in portfolio if obj['checked']]
@@ -143,23 +143,13 @@ def calculate_portfolio_data(request):
         # Count Chart 2 Data
         coutn_result_df, df, columns = calculation_prtfolio(df=df, portfolios=portfolio_dfs)
         result = prepare_data_for_response(coutn_result_df, portfolio_names)
-        # print(pformat(result))
         output_file_format['chart2']['data'] = result
         output_file_format['chart2']['lefttitle'] = "Weighted average carbon intensity (rel to ACWI)"
         output_file_format['chart2']['bottomtitle'] = "Implied % emissions change through 2030"
         output_file_format['chart2']['render'] = True
         # Count Waterfall Data
-        print("X"*50)
-        print(columns)
-        print("X"*50)
         waterfall_result_df = calculation_waterfall(df=df, columns=columns)
         data_for_watrfal_chart = transform_data_for_multiple_series(waterfall_result_df)
-        print('-'*50)
-        print(pformat(waterfall_result_df))
-        print('.'*50)
-        print(pformat(data_for_watrfal_chart))
-        print(len(waterfall_result_df))
-        print('.'*50)
         output_file_format['chart1']['data'] = data_for_watrfal_chart
         output_file_format['chart1']['serieslen'] = len(waterfall_result_df)
         return JsonResponse(output_file_format)
