@@ -25,7 +25,7 @@ jobs:
             cd /home/ubuntu/PortfolioCarbonTool
 
             # Pull the latest changes from the master branch
-            git pull origin master
+            sudo git pull origin master
             
             # Activate the virtual environment
             source /home/ubuntu/PortfolioCarbonTool/venv/bin/activate
