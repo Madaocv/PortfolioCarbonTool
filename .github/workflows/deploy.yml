@@ -17,11 +17,11 @@ jobs:
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY_OWN }}
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@18.169.190.18 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ec2-user@13.60.137.38 << 'EOF'
             cd /home/ec2-user/PortfolioCarbonTool
             git pull origin master  # Оновлюємо код з репозиторія 
             
