@@ -2,7 +2,7 @@ let root1, root2; // глобальні змінні для збереження
 let loadingIndicator1, loadingIndicator2, loadingAnimation1, loadingAnimation2;
 let loadingRoot1, loadingRoot2;
 document.addEventListener('DOMContentLoaded', function() {
-  // console.log('*'.repeat(10));
+  console.log('*'.repeat(10));
   // Ініціалізація Sortable.js
   var sortable = new Sortable(document.getElementById('sortable-portfolios'), {
       animation: 50,
