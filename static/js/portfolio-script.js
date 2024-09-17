@@ -2,7 +2,7 @@ let root1, root2; // глобальні змінні для збереження
 let loadingIndicator1, loadingIndicator2, loadingAnimation1, loadingAnimation2;
 let loadingRoot1, loadingRoot2;
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('*'.repeat(10));
+  // console.log('*'.repeat(10));
   // Ініціалізація Sortable.js
   var sortable = new Sortable(document.getElementById('sortable-portfolios'), {
       animation: 50,
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Додаємо обробник подій для кожного чекбоксу
   document.querySelectorAll('input[name="portfolios"]').forEach((checkbox) => {
       checkbox.addEventListener('change', function() {
-          console.log('Checkbox changed:', checkbox.value, 'Checked:', checkbox.checked); // Лог для перевірки
+          // console.log('Checkbox changed:', checkbox.value, 'Checked:', checkbox.checked); // Лог для перевірки
           updateColors();
           submitForm(); // Виклик submitForm при зміні стану чекбоксу
       });
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 function submitForm() {
-  console.log('submitForm called');
+  // console.log('submitForm called');
     // Спочатку видаляємо старі графіки, якщо вони є
     if (root1) root1.dispose();
     if (root2) root2.dispose();
@@ -72,8 +72,8 @@ function submitForm() {
 
   // Використовуємо простіший селектор для вибору чекбоксів
   document.querySelectorAll('input[name="portfolios"]').forEach((checkbox, index) => {
-      console.log('Checkbox found:', checkbox); // Лог для перевірки, чи знайдено чекбокс
-      console.log('Checkbox:', checkbox.value, 'Checked:', checkbox.checked);
+      // console.log('Checkbox found:', checkbox); // Лог для перевірки, чи знайдено чекбокс
+      // console.log('Checkbox:', checkbox.value, 'Checked:', checkbox.checked);
 
       if (checkbox.checked) {
           anyChecked = true;
@@ -84,22 +84,22 @@ function submitForm() {
           order: index + 1
       });
   });
-  console.log('Selected portfolios:', selectedPortfolios);
+  // console.log('Selected portfolios:', selectedPortfolios);
   const checkedCount = selectedPortfolios.filter(item => item.checked).length;
   if (checkedCount < 2) {
     //   console.log('No checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);
-    console.log('Less than two checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);  
+    // console.log('Less than two checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);  
     document.getElementById('danger-info').style.visibility = 'visible';
     hideLoadingIndicator1();
     hideLoadingIndicator2();
       return;
   } else {
-      console.log('At least two checkbox selected');
+      // console.log('At least two checkbox selected');
       document.getElementById('danger-info').style.visibility = 'hidden';
   }
 
-  console.log('Selected portfolios:', selectedPortfolios);
-  console.log('Where is animation ?');
+  // console.log('Selected portfolios:', selectedPortfolios);
+  // console.log('Where is animation ?');
 //   showLoadingIndicator1();
 //   showLoadingIndicator2();
   // Відправка даних на сервер
@@ -113,7 +113,7 @@ function submitForm() {
   })
   .then(response => response.json())
   .then(data => {
-      console.log('Data received:', data);
+      // console.log('Data received:', data);
         // Приховуємо індикатори, коли дані отримані
         hideLoadingIndicator1();
         hideLoadingIndicator2();
@@ -125,10 +125,10 @@ function submitForm() {
         root1 = buildWaterfallChart("chartdiv1", data.chart1.data, data.chart1.serieslen);
       }
       if (data.chart2.render === true) {
-        console.log("This is render chart 2 true");
+        // console.log("This is render chart 2 true");
         // Очищаємо старі графіки
         if (root2) root2.dispose();
-        console.log(data.chart2.data);
+        // console.log(data.chart2.data);
         root2 = buildChart2("chartdiv2", data.chart2.data, {
             maintitle: 'Main',
             lefttitle: data.chart2.lefttitle,
