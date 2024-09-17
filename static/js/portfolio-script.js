@@ -298,9 +298,8 @@ function cleanChartContainer(id) {
     chartContainer.innerHTML = ''; // Очищаємо вміст контейнера
   }
 }
-
 function buildWaterfallChart(divId, chartData, numOfSeries) {
-    // Очищуємо контейнер для графіка
+    // Очищаємо контейнер для графіка
     am5.array.each(am5.registry.rootElements, function(root) {
       if (root.dom.id === divId) {
         root.dispose();
@@ -320,8 +319,14 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
         panY: false,
         wheelX: "panX",
         wheelY: "zoomY",
+        pinchZoomY: true // Додаємо можливість збільшення по Y
       })
     );
+  
+    // Додаємо повзунок для осі Y
+    chart.set("scrollbarY", am5.Scrollbar.new(root, {
+      orientation: "vertical"
+    }));
   
     // Створюємо осі
     var xAxis = chart.xAxes.push(
@@ -336,6 +341,16 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
       })
     );
   
+    // Додаємо обмеження для тексту категорій на осі X
+    xAxis.get("renderer").labels.template.setAll({
+      maxWidth: 100,  // Максимальна ширина тексту
+      oversizedBehavior: "wrap",  // Текст буде переноситися на новий рядок
+      textAlign: "center",  // Текст буде центруватися
+    //   rotation: -45,  // Додаємо поворот тексту для кращого вигляду
+      centerY: am5.p50,  // Центруємо текст по осі Y
+      centerX: am5.p50   // Центруємо текст по осі X
+    });
+  
     var yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         maxDeviation: 0.3,
@@ -348,6 +363,15 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
     // Додаємо дані в осі
     xAxis.data.setAll(chartData);
   
+    // Задаємо кольори для серій (синій і зелений)
+    const colorPalette = [
+      am5.color(0x3498db), // Синій
+      am5.color(0x2ecc71), // Зелений
+      am5.color(0xe74c3c), // Червоний
+      am5.color(0xf1c40f), // Жовтий
+      am5.color(0x9b59b6)  // Фіолетовий
+    ];
+  
     // Створюємо серії для кожної пари open/close
     function createSeries(openField, closeField, name, colorIndex) {
       var series = chart.series.push(
@@ -359,7 +383,8 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
           openValueYField: openField,
           categoryXField: "category",
           clustered: false,
-          fill: am5.color(am5.Color.fromHSL(colorIndex * 0.1, 0.7, 0.5))
+          fill: colorPalette[colorIndex % colorPalette.length], // Використовуємо кольори з палітри
+          stroke: colorPalette[colorIndex % colorPalette.length] // Задаємо колір для меж колонок
         })
       );
   
@@ -371,7 +396,11 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
             centerY: am5.p50,
             centerX: am5.p50,
             populateText: true,
-            fill: am5.color(0xffffff)
+            fill: am5.color(0xffffff),
+            // Обмеження розміру тексту, щоб уникнути перекриття
+            maxWidth: 60,  // Задаємо максимальну ширину для тексту
+            wrap: true,    // Додаємо перенесення тексту
+            fontSize: 12   // Зменшуємо розмір шрифту для кращого вигляду
           })
         });
       });
@@ -383,11 +412,11 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
   
     // Генеруємо серії на основі кількості пар open/close
     for (let i = 1; i <= numOfSeries; i++) {
-      createSeries(`open${i}`, `close${i}`, `Series ${i}`, i);
+      createSeries(`open${i}`, `close${i}`, `Series ${i}`, i - 1); // Використовуємо кольори з палітри
     }
   
     // Анімація при завантаженні графіку
     chart.appear(1000, 100);
     
     return root;
-  }
+}
