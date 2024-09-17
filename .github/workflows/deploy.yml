@@ -21,29 +21,24 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@13.60.137.38 << 'EOF'
-            cd /home/ec2-user/PortfolioCarbonTool
-            git pull origin master  # Оновлюємо код з репозиторія 
+          ssh -o StrictHostKeyChecking=no ubuntu@13.60.137.38 << 'EOF'
+            cd /home/ubuntu/PortfolioCarbonTool
+
+            # Pull the latest changes from the master branch
+            git pull origin master
             
-            # Зупиняємо і видаляємо контейнер, якщо він вже існує
-            sudo docker stop portfolio-carbon-tool || true  # Зупиняємо старий контейнер
-            sudo docker rm portfolio-carbon-tool || true    # Видаляємо старий контейнер
+            # Activate the virtual environment
+            source /home/ubuntu/PortfolioCarbonTool/venv/bin/activate
 
-            # Перевіряємо, чи існує якийсь процес на порту 8000
-            if sudo lsof -i :8000; then
-              echo "Killing process on port 8000"
-              sudo fuser -k 8000/tcp  # Вбиваємо всі процеси, що займають порт 8000
-            fi
+            # Install new dependencies if any
+            pip install -r requirements.txt
 
-            # Білдимо новий образ
-            sudo docker build -t portfolio-carbon-tool .
+            # Run collectstatic to gather static files
+            python manage.py collectstatic --noinput
 
-            # Запускаємо новий контейнер з фіксованою назвою
-            sudo docker run -d -p 8000:8000 --name portfolio-carbon-tool \
-              -v /home/ec2-user/PortfolioCarbonTool/db.sqlite3:/app/db.sqlite3 \
-              portfolio-carbon-tool
+            # Restart Gunicorn service
+            sudo systemctl restart gunicorn
 
-            # Перевіряємо статус контейнера та чи займає він порт 8000
-            sudo docker ps
-            sudo lsof -i :8000
+            # Optionally: Check the status of the Gunicorn service
+            sudo systemctl status gunicorn
           EOF
