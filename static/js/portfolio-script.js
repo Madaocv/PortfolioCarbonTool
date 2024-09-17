@@ -89,7 +89,9 @@ function submitForm() {
   }
 
   console.log('Selected portfolios:', selectedPortfolios);
-
+  console.log('Where is animation ?');
+  showLoadingIndicator1();
+  showLoadingIndicator2();
   // Відправка даних на сервер
   fetch("/api/calculate-portfolio-data/", {
       method: "POST",
@@ -121,7 +123,8 @@ function submitForm() {
             bottomtitle: data.chart2.bottomtitle
         });
       }
-      console.log("Hello world! xl");
+      hideLoadingIndicator1();
+      hideLoadingIndicator2();
   })
   .catch((error) => {
       console.error("Error:", error);
@@ -419,4 +422,86 @@ function buildWaterfallChart(divId, chartData, numOfSeries) {
     chart.appear(1000, 100);
     
     return root;
+}
+
+
+// Глобальні змінні для індикаторів завантаження
+let loadingIndicator1, loadingIndicator2, loadingAnimation1, loadingAnimation2;
+
+function createLoadingIndicator(chartDivId) {
+    let tempRoot = am5.Root.new(chartDivId); // Створюємо тимчасовий root для індикатора
+    let indicator = tempRoot.container.children.push(am5.Container.new(tempRoot, {
+        width: am5.p100,
+        height: am5.p100,
+        layer: 1000,
+        background: am5.Rectangle.new(tempRoot, {
+            fill: am5.color(0xffffff),
+            fillOpacity: 0.7
+        })
+    }));
+
+    indicator.children.push(am5.Label.new(tempRoot, {
+        text: "Loading...",
+        fontSize: 25,
+        x: am5.p50,
+        y: am5.p50,
+        centerX: am5.p50,
+        centerY: am5.p50
+    }));
+
+    let hourglass = indicator.children.push(am5.Graphics.new(tempRoot, {
+        width: 32,
+        height: 32,
+        fill: am5.color(0x000000),
+        x: am5.p50,
+        y: am5.p50,
+        centerX: am5.p50,
+        centerY: am5.p50,
+        dy: -45,
+        svgPath: "M12 5v10l9 9-9 9v10h24V33l-9-9 9-9V5H12zm20 29v5H16v-5l8-8 8 8zm-8-12-8-8V9h16v5l-8 8z"
+    }));
+
+    let animation = hourglass.animate({
+        key: "rotation",
+        to: 180,
+        loops: Infinity,
+        duration: 2000,
+        easing: am5.ease.inOut(am5.ease.cubic)
+    });
+
+    return { indicator, animation, tempRoot };
+}
+
+function showLoadingIndicator1() {
+    if (!loadingIndicator1) {
+        let result = createLoadingIndicator("chartdiv1"); // Використовуємо тимчасовий root
+        loadingIndicator1 = result.indicator;
+        loadingAnimation1 = result.animation;
+        root1 = result.tempRoot;  // Використовуємо тимчасовий root для індикатора
+    }
+    loadingAnimation1.play();
+    loadingIndicator1.show();
+}
+
+function hideLoadingIndicator1() {
+    if (loadingAnimation1) loadingAnimation1.pause();
+    if (loadingIndicator1) loadingIndicator1.hide();
+    // if (root1) root1.dispose(); // Звільняємо root після приховування
+}
+
+function showLoadingIndicator2() {
+    if (!loadingIndicator2) {
+        let result = createLoadingIndicator("chartdiv2"); // Використовуємо тимчасовий root
+        loadingIndicator2 = result.indicator;
+        loadingAnimation2 = result.animation;
+        root2 = result.tempRoot;  // Використовуємо тимчасовий root для індикатора
+    }
+    loadingAnimation2.play();
+    loadingIndicator2.show();
+}
+
+function hideLoadingIndicator2() {
+    if (loadingAnimation2) loadingAnimation2.pause();
+    if (loadingIndicator2) loadingIndicator2.hide();
+    // if (root2) root2.dispose(); // Звільняємо root після приховування
 }
