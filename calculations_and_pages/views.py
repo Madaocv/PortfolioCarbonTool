@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
-from .utils import mock_data, calculation
+from .utils import mock_data, calculation, calculation_prtfolio, prepare_data_for_response, calculation_waterfall, transform_data_for_multiple_series
 from uploads_data.models import FileDataFrame, PortfolioFile
 from django.contrib.auth.decorators import login_required
 import time
@@ -35,43 +35,31 @@ def portfolio(request):
         # {'name': 'Custom Portfolio 2', 'id': 'custom_2'},/
     ]
     combined_portfolios = list(custom_portfolios) + list(portfolios)
-    is_in_development = True
+    is_in_development = False
     return render(request, 'portfolio.html', {
         'portfolios': combined_portfolios,
         'is_in_development': is_in_development
     })
 
-
+# TODO rename to holdings
 @require_POST
 def calculate_chart_data(request):
     all_file_data_frames = FileDataFrame.objects.filter(company_file__isnull=False)
     data_frames = []
     for file_data_frame in all_file_data_frames:
-        # print(f"Processing FileDataFrame ID: {file_data_frame.id}")
         try:
-            # file_start_time = time.time()
             df = file_data_frame.get_data_frame()
             data_frames.append(df)
-            # file_end_time = time.time()
-            # print(f"Processed FileDataFrame ID: {file_data_frame.id} in {file_end_time - file_start_time:.2f} seconds")
-            # print(df.shape)
         except Exception as e:
             print(f"Error processing FileDataFrame ID: {file_data_frame.id} - {e}")
     if data_frames:
         combined_df = pd.concat(data_frames, ignore_index=True)
-        # Видаляємо повторення значень по першій колонці
-        # combined_df = combined_df.drop_duplicates(subset=['A'])
     data = json.loads(request.body)
     portfolio = data.get('portfolio')
     reference = data.get('reference')
     is_absolute = data.get('absoluteRelative')
     is_company = data.get('companyContribution')
-    # print(f"portfolio: {portfolio}")
-    # print(f"reference: {reference}")
-    # print(f"is_absolute: {is_absolute}")
-    # print(f"is_company: {is_company}")
     try:
-
         if not portfolio:
             raise ValueError("Portfolio ID is missing or invalid.")
         maintitle = "Contribution" if is_company else "Company"
@@ -81,7 +69,6 @@ def calculate_chart_data(request):
         df_prtfolio = portfolio_file.data_frame.get_data_frame()
         reference_file = PortfolioFile.objects.get(id=reference)
         df_reference = reference_file.data_frame.get_data_frame()
-        start = time.time()
         df = calculation(
             df=df,
             portfolio=df_prtfolio,
@@ -91,16 +78,11 @@ def calculate_chart_data(request):
             is_absolute=is_absolute,
             is_company=is_company
         )
-        # print(df[['AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO']].head(12))
-        # print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
-        end = time.time()
-        # print("Calculation time: ", end - start)
         if is_company:
             df_filtered = df[[df.columns[1], "AV", "AY"]].dropna(subset=["AV", "AY"])
         else:
             df_filtered = df[[df.columns[1], "AQ", "AT"]].dropna(subset=["AQ", "AT"])
         data = [{"x": row.iloc[1], "y": row.iloc[2], "text": row.iloc[0]} for _, row in df_filtered.iterrows()]
-
         result = {
             "data": data,
             "maintitle": maintitle,
@@ -112,15 +94,74 @@ def calculate_chart_data(request):
         return JsonResponse({
             "error": str(e)
         }, status=400)
-
     except Exception as e:
         return JsonResponse({
             "error": "An unexpected error occurred: " + str(e)
         }, status=500)
-        
-        
+
+
 @require_POST
 def calculate_portfolio_data(request):
+    output_file_format = {
+        "chart1": {
+            "maintitle": None,
+            "lefttitle": None,
+            "bottomtitle": None,
+            "data": None,
+            "render": True,
+            "serieslen": None,
+        },
+        "chart2": {
+            "maintitle": None,
+            "lefttitle": None,
+            "bottomtitle": None,
+            "data": None,
+            "render": False
+        }
+    }
+    all_file_data_frames = FileDataFrame.objects.filter(company_file__isnull=False)
+    data_frames = []
+    for file_data_frame in all_file_data_frames:
+        try:
+            df = file_data_frame.get_data_frame()
+            data_frames.append(df)
+        except Exception as e:
+            print(f"Error processing FileDataFrame ID: {file_data_frame.id} - {e}")
+    if data_frames:
+        combined_df = pd.concat(data_frames, ignore_index=True)
     data = json.loads(request.body)
-    print(pformat(data))
-    return JsonResponse({"data": []})
+    portfolio = data.get('portfolios', [])
+    portfolio_filter = [obj for obj in portfolio if obj['checked']]
+    portfolio_dfs = []
+    portfolio_names = []
+    if len(portfolio_filter) > 1:
+        for obj in portfolio_filter:
+            portfolio_file = PortfolioFile.objects.get(id=obj['id'])
+            df_prtfolio = portfolio_file.data_frame.get_data_frame()
+            portfolio_dfs.append(df_prtfolio)
+            portfolio_names.append(portfolio_file.name)
+        # Count Chart 2 Data
+        coutn_result_df, df, columns = calculation_prtfolio(df=df, portfolios=portfolio_dfs)
+        result = prepare_data_for_response(coutn_result_df, portfolio_names)
+        # print(pformat(result))
+        output_file_format['chart2']['data'] = result
+        output_file_format['chart2']['lefttitle'] = "Weighted average carbon intensity (rel to ACWI)"
+        output_file_format['chart2']['bottomtitle'] = "Implied % emissions change through 2030"
+        output_file_format['chart2']['render'] = True
+        # Count Waterfall Data
+        print("X"*50)
+        print(columns)
+        print("X"*50)
+        waterfall_result_df = calculation_waterfall(df=df, columns=columns)
+        data_for_watrfal_chart = transform_data_for_multiple_series(waterfall_result_df)
+        print('-'*50)
+        print(pformat(waterfall_result_df))
+        print('.'*50)
+        print(pformat(data_for_watrfal_chart))
+        print(len(waterfall_result_df))
+        print('.'*50)
+        output_file_format['chart1']['data'] = data_for_watrfal_chart
+        output_file_format['chart1']['serieslen'] = len(waterfall_result_df)
+        return JsonResponse(output_file_format)
+    else:
+        return JsonResponse(output_file_format)

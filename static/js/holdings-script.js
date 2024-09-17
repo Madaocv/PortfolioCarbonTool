@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("Hello world!");
     var root = am5.Root.new("chartdiv");
 
     root.setThemes([am5themes_Animated.new(root)]);
@@ -127,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (y < -plotHeight) {
             y = -plotHeight;
         }
+        xAxis.set("y", y);
     }
 
     // Глобальні змінні для індикатора і анімації
@@ -232,6 +234,9 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then(data => {
             if (!data.error) {
+                console.log("x".repeat(30));
+                console.log("Data received:", data);
+                console.log("x".repeat(30));
                 updateChart(data);
                 hideIndicator(); // Приховуємо індикатор завантаження
             }

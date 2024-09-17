@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //   label.innerText = label.innerText + " (Reference)";
         } else {
           // Інші об'єкти стають синіми
-          item.classList.add('bg-blue-300');
+          item.classList.add('bg-blue-300', 'hover:bg-blue-200');
         }
       });
     }
@@ -76,14 +76,16 @@ function submitForm() {
           order: index + 1
       });
   });
-
-  if (!anyChecked) {
-      console.log('No checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);
-      document.getElementById('danger-alert').style.visibility = 'visible';
+  console.log('Selected portfolios:', selectedPortfolios);
+  const checkedCount = selectedPortfolios.filter(item => item.checked).length;
+  if (checkedCount < 2) {
+    //   console.log('No checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);
+    console.log('Less than two checkboxes selected. Current state of selectedPortfolios:', selectedPortfolios);  
+    document.getElementById('danger-info').style.visibility = 'visible';
       return;
   } else {
-      console.log('At least one checkbox selected');
-      document.getElementById('danger-alert').style.visibility = 'hidden';
+      console.log('At least two checkbox selected');
+      document.getElementById('danger-info').style.visibility = 'hidden';
   }
 
   console.log('Selected portfolios:', selectedPortfolios);
@@ -101,29 +103,25 @@ function submitForm() {
   .then(data => {
       console.log('Data received:', data);
 
-      // Очищаємо старі графіки
-      if (root1) root1.dispose();
-      if (root2) root2.dispose();
+      if (data.chart1.render === true) {
 
-      // Побудова графіків на основі отриманих даних
-      const mockData1 = [
-        { x: 'A', y: 2 },
-        { x: 'B', y: 1 },
-        { x: 'C', y: 3 },
-        { x: 'D', y: 2.5 }
-        ];
+        // Очищаємо старі графіки
+        if (root1) root1.dispose();
 
-      const mockData2 = [
-        { x: 'A', y: 4 },
-        { x: 'B', y: 2.5 },
-        { x: 'C', y: 5 },
-        { x: 'D', y: 3.5 }
-        ];
-
-      // Використовуємо замокані дані для побудови графіків
-      root1 = buildChart("chartdiv1", mockData1);
-      root2 = buildChart("chartdiv2", mockData2);
-      console.log("Hello world!");
+        root1 = buildWaterfallChart("chartdiv1", data.chart1.data, data.chart1.serieslen);
+      }
+      if (data.chart2.render === true) {
+        console.log("This is render chart 2 true");
+        // Очищаємо старі графіки
+        if (root2) root2.dispose();
+        console.log(data.chart2.data);
+        root2 = buildChart2("chartdiv2", data.chart2.data, {
+            maintitle: 'Main',
+            lefttitle: data.chart2.lefttitle,
+            bottomtitle: data.chart2.bottomtitle
+        });
+      }
+      console.log("Hello world! xl");
   })
   .catch((error) => {
       console.error("Error:", error);
@@ -145,39 +143,152 @@ function getCookie(name) {
   return cookieValue;
 }
 
-// Статична функція побудови графіків
-function buildChart(div, chartData) {
+function buildChart2(div, chartData, chartTitles) {
     // Очищаємо контейнер для графіка
     cleanChartContainer(div);
 
-    let root = am5.Root.new(div); // Локальна змінна root
+    root2 = am5.Root.new(div); // Локальна змінна root
 
-    const chart = root.container.children.push(
-        am5xy.XYChart.new(root, {})
-    );
+    root2.setThemes([am5themes_Animated.new(root2)]); // Додаємо тему
 
-    const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
-        renderer: am5xy.AxisRendererX.new(root, {}),
-        categoryField: "x"
-    }));
-    xAxis.data.setAll(chartData);
-
-    const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
-        renderer: am5xy.AxisRendererY.new(root, {})
+    // Контейнер для графіка
+    var container = root2.container.children.push(am5.Container.new(root2, {
+        layout: root2.verticalLayout,
+        width: am5.percent(100),
+        height: am5.percent(100)
     }));
 
+    // Додаємо основний заголовок
+    var title = container.children.push(am5.Label.new(root2, {
+        text: chartTitles.maintitle || '',
+        fontSize: 25,
+        fontWeight: "bold",
+        textAlign: "center",
+        x: am5.p50,
+        centerX: am5.p50,
+        paddingBottom: 10
+    }));
+
+    var chartContainer = container.children.push(am5.Container.new(root2, {
+        layout: root2.horizontalLayout,
+        width: am5.percent(100),
+        height: am5.percent(100)
+    }));
+
+    // Додаємо заголовок для лівої осі
+    var leftTitle = chartContainer.children.push(am5.Label.new(root2, {
+        text: chartTitles.lefttitle || '',
+        fontSize: 15,
+        fontWeight: "bold",
+        rotation: -90,
+        textAlign: "center",
+        y: am5.p50,
+        centerY: am5.p50,
+        paddingRight: 10
+    }));
+
+    // Додаємо заголовок для нижньої осі
+    var bottomTitle = container.children.push(am5.Label.new(root2, {
+        text: chartTitles.bottomtitle || '',
+        fontSize: 15,
+        fontWeight: "bold",
+        textAlign: "center",
+        x: am5.p50,
+        centerX: am5.p50,
+        paddingTop: 10
+    }));
+
+    // Створюємо XY-графік
+    const chart = chartContainer.children.push(am5xy.XYChart.new(root2, {
+        panX: true,
+        panY: true,
+        wheelY: "zoomXY",
+        pinchZoomX: true,
+        pinchZoomY: true
+    }));
+
+    // Налаштування осі X
+    const xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root2, {
+        renderer: am5xy.AxisRendererX.new(root2, {
+            minGridDistance: 50,
+            stroke: am5.color(0x000000),
+            strokeWidth: 2
+        }),
+        tooltip: am5.Tooltip.new(root2, {})
+    }));
+    // Додаємо адаптер для підписів осі X, щоб додати знак %
+    xAxis.get("renderer").labels.template.adapters.add("text", function(text) {
+        return text + "%";
+    });
+    // Налаштування осі Y
+    const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root2, {
+        renderer: am5xy.AxisRendererY.new(root2, {
+            minGridDistance: 50,
+            stroke: am5.color(0x000000),
+            strokeWidth: 2
+        }),
+        tooltip: am5.Tooltip.new(root2, {})
+    }));
+
+    // Створюємо серію для даних
     const series = chart.series.push(
-        am5xy.LineSeries.new(root, {
+        am5xy.LineSeries.new(root2, {
             xAxis: xAxis,
             yAxis: yAxis,
             valueYField: "y",
-            categoryXField: "x",
+            valueXField: "x",
+            tooltip: am5.Tooltip.new(root2, {
+                labelText: "{text}\nx: {valueX}, y: {valueY}"
+            })
         })
     );
 
+    // Додаємо дані в серію
     series.data.setAll(chartData);
-    
-    return root; // Повертаємо root для подальшого очищення
+
+    // Налаштовуємо кола для точок на графіку
+    var circleTemplate = am5.Template.new({});
+    series.bullets.push(function() {
+        var graphics = am5.Circle.new(root2, {
+            radius: 10,
+            fill: series.get("fill"),
+            tooltipText: "{text}\nx: {valueX}, y: {valueY}"
+        }, circleTemplate);
+
+        return am5.Bullet.new(root2, {
+            sprite: graphics
+        });
+    });
+
+    // Приховуємо лінії між точками
+    series.strokes.template.setAll({
+        strokeWidth: 2,
+        strokeOpacity: 0
+    });
+
+    // Відображення шкали осі X у центрі графіка
+    function updateAxisPosition() {
+        var plotHeight = chart.plotContainer.height();
+        var y = yAxis.get("renderer").positionToCoordinate(yAxis.valueToPosition(0)) - plotHeight;
+        if (y > 0) {
+            y = 0;
+        }
+        if (y < -plotHeight) {
+            y = -plotHeight;
+        }
+        xAxis.set("y", y);  // Встановлюємо вісь X в центрі
+    }
+
+    // Оновлення позицій осей при змінах
+    xAxis.on("start", updateAxisPosition);
+    xAxis.on("end", updateAxisPosition);
+    yAxis.on("start", updateAxisPosition);
+    yAxis.on("end", updateAxisPosition);
+    chart.yAxesAndPlotContainer.events.on("positionchanged", updateAxisPosition);
+    chart.plotContainer.events.on("boundschanged", updateAxisPosition);
+
+    // Повертаємо root для подальшого очищення
+    return root2;
 }
 
 // Функція очищення контейнера
@@ -187,3 +298,96 @@ function cleanChartContainer(id) {
     chartContainer.innerHTML = ''; // Очищаємо вміст контейнера
   }
 }
+
+function buildWaterfallChart(divId, chartData, numOfSeries) {
+    // Очищуємо контейнер для графіка
+    am5.array.each(am5.registry.rootElements, function(root) {
+      if (root.dom.id === divId) {
+        root.dispose();
+      }
+    });
+  
+    // Створюємо root елемент
+    var root = am5.Root.new(divId);
+  
+    // Додаємо тему
+    root.setThemes([am5themes_Animated.new(root)]);
+  
+    // Створюємо графік
+    var chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: false,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomY",
+      })
+    );
+  
+    // Створюємо осі
+    var xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        maxDeviation: 0.3,
+        categoryField: "category",
+        renderer: am5xy.AxisRendererX.new(root, {
+          minGridDistance: 30,
+          strokeOpacity: 0.1
+        }),
+        tooltip: am5.Tooltip.new(root, {})
+      })
+    );
+  
+    var yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        maxDeviation: 0.3,
+        renderer: am5xy.AxisRendererY.new(root, {
+          strokeOpacity: 0.1
+        })
+      })
+    );
+  
+    // Додаємо дані в осі
+    xAxis.data.setAll(chartData);
+  
+    // Створюємо серії для кожної пари open/close
+    function createSeries(openField, closeField, name, colorIndex) {
+      var series = chart.series.push(
+        am5xy.ColumnSeries.new(root, {
+          name: name,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: closeField,
+          openValueYField: openField,
+          categoryXField: "category",
+          clustered: false,
+          fill: am5.color(am5.Color.fromHSL(colorIndex * 0.1, 0.7, 0.5))
+        })
+      );
+  
+      // Додаємо підписи до серій
+      series.bullets.push(function() {
+        return am5.Bullet.new(root, {
+          sprite: am5.Label.new(root, {
+            text: "{valueY}",
+            centerY: am5.p50,
+            centerX: am5.p50,
+            populateText: true,
+            fill: am5.color(0xffffff)
+          })
+        });
+      });
+  
+      // Додаємо анімацію на графік
+      series.appear(1000);
+      series.data.setAll(chartData);
+    }
+  
+    // Генеруємо серії на основі кількості пар open/close
+    for (let i = 1; i <= numOfSeries; i++) {
+      createSeries(`open${i}`, `close${i}`, `Series ${i}`, i);
+    }
+  
+    // Анімація при завантаженні графіку
+    chart.appear(1000, 100);
+    
+    return root;
+  }

@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import time
-
+import string
+from pprint import pformat
 
 def sumproduct(df, col1, col2):
     df[col1] = pd.to_numeric(df[col1], errors='coerce')
@@ -427,5 +428,300 @@ def calculation(df=None, portfolio=None, reference=None, is_absolute=None, is_co
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BX'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BX'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BY'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BY'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
     df.loc[df['BV'] == '2030 emissions change intensity rel', 'BZ'] = df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0] - df.loc[df['BV'] == '2030 emissions change intensity', 'BZ'].values[0]
-    # print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
+    print(df[['BV', 'BW', 'BX', 'BY', 'BZ']].head(12))
     return df
+
+
+def calculation_prtfolio(df=None, portfolios=None):
+    current_column_index = 1  # Індекс для відстеження поточної назви колонки
+    columns = [f"POR{i}" for i in range(1, len(portfolios) + 1)]
+    last_column = columns[-1]
+    for portfolio_df in portfolios:
+        # Очищаємо дані в кожному DataFrame
+        portfolio_df = portfolio_df.dropna(subset=['ISIN', 'Weight'], how='all')
+        portfolio_df['ISIN'] = portfolio_df['ISIN'].str.strip()
+
+        # Додаємо нову колонку до основного DataFrame, маплячи по 'ISIN'
+        new_column_name = f'POR{current_column_index}'
+        # print(new_column_name)
+        df[new_column_name] = df['A'].map(portfolio_df.set_index('ISIN')['Weight'])
+
+        # Переходимо до наступної колонки (наступна літера)
+        current_column_index += 1
+    df['N'] = df['C'].add(df['D'], fill_value=0)
+    df['O'] = df['N'].add(df['E'], fill_value=0)
+    df['P'] = df['N'].div(df['F'], fill_value=0).replace([float('inf'), -float('inf')], None)
+    df['Q'] = df['E'].div(df['F'], fill_value=0)
+    df['R'] = df['O'].div(df['F'], fill_value=0)
+    df['S'] = df['N'].mul(df['H'], fill_value=0)
+    df['T'] = df['S'].div(df['F'], fill_value=0)
+    df['U'] = df['H'].fillna(pd.NA)
+    df['V'] = df['I'].fillna(pd.NA)
+    df['W'] = df['J'].fillna(pd.NA)
+    df['X'] = df['K'].fillna(pd.NA)
+    df['Y'] = df['L'].fillna(pd.NA)
+    bv_values = [
+        "WACI 12", "WACI 12 rel", "Avoided intensity", "Avoided intensity rel", "WACI", 
+        "WACI rel", "% SBTi committed", "% change through 2030", "% change through 2030 rel", 
+        "Emissions change through 2030", "2030 emissions change intensity", 
+        "2030 emissions change intensity rel"
+    ]
+    # Створюємо новий DataFrame для зберігання результатів
+    df2 = pd.DataFrame(index=range(len(bv_values)))  # Встановлюємо кількість рядків відповідно до bv_values
+    
+    # Заповнюємо BV колонку у df2
+    df2['BV'] = bv_values  # Заповнюємо колонку 'BV' значеннями
+    
+    # Створюємо колонки у df2 для результатів обчислень
+    for col in columns:
+        df2[col] = None  # Створюємо нові стовпці у df2 для результатів
+    
+    # Обчислюємо значення для кожної колонки
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == 'WACI 12', col] = calculate_formula_new(df, 'P', col)
+
+    for idx, col in enumerate(columns):
+        if df2.loc[df2['BV'] == 'WACI 12', col].values[0] is not None and df2.loc[df2['BV'] == 'WACI 12', last_column].values[0] is not None:
+            df2.loc[df2['BV'] == 'WACI 12 rel', col] = (
+                df2.loc[df2['BV'] == 'WACI 12', col].values[0] - df2.loc[df2['BV'] == 'WACI 12', last_column].values[0]
+            )
+    for idx, col in enumerate(columns):   
+        df2.loc[df2['BV'] == 'Avoided intensity', col] = calculate_formula_new_minus(df, 'Q', col)
+    for idx, col in enumerate(columns):
+        if df2.loc[df2['BV'] == 'Avoided intensity', col].values[0] is not None and df2.loc[df2['BV'] == 'Avoided intensity', last_column].values[0] is not None:
+            df2.loc[df2['BV'] == 'Avoided intensity rel', col] = (
+                df2.loc[df2['BV'] == 'Avoided intensity', col].values[0] - df2.loc[df2['BV'] == 'Avoided intensity', last_column].values[0]
+            )
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == 'WACI', col] = calculate_formula_new(df, 'R', col)
+    for idx, col in enumerate(columns):
+        if df2.loc[df2['BV'] == 'WACI', col].values[0] is not None and df2.loc[df2['BV'] == 'WACI', last_column].values[0] is not None:
+            df2.loc[df2['BV'] == 'WACI rel', col] = custom_formula(
+                df2.loc[df2['BV'] == 'WACI', col].values[0], df2.loc[df2['BV'] == 'WACI', last_column].values[0]
+            )
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == '% SBTi committed', col] = calculate_formula(df, 'G', col)
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == '% change through 2030', col] = calculate_formula(df, 'H', col)
+        
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == 'Emissions change through 2030', col] = sumproduct(df, 'S', col)
+    for idx, col in enumerate(columns):
+        df2.loc[df2['BV'] == '2030 emissions change intensity', col] = calculate_formula(df, 'T', col)
+    for idx, col in enumerate(columns):   
+        # Перевірка перед відніманням для 'rel' показників
+        if df2.loc[df2['BV'] == '2030 emissions change intensity', col].values[0] is not None and df2.loc[df2['BV'] == '2030 emissions change intensity', last_column].values[0] is not None:
+            df2.loc[df2['BV'] == '2030 emissions change intensity rel', col] = (
+                df2.loc[df2['BV'] == '2030 emissions change intensity', col].values[0] - df2.loc[df2['BV'] == '2030 emissions change intensity', last_column].values[0]
+            )
+    for idx, col in enumerate(columns):
+        if df2.loc[df2['BV'] == '% change through 2030', col].values[0] is not None and df2.loc[df2['BV'] == '% change through 2030', last_column].values[0] is not None:
+            df2.loc[df2['BV'] == '% change through 2030 rel', col] = (
+                df2.loc[df2['BV'] == '% change through 2030', col].values[0] - df2.loc[df2['BV'] == '% change through 2030', last_column].values[0]
+            )
+    print('.'*50)
+    print(df2.head(12))  # Виводимо результат для перегляду
+    print('.'*50)
+    return df2, df, columns
+def prepare_data_for_response(df2, names):
+    result = []
+
+    # Перевіряємо, чи маємо достатньо імен у списку
+    if len(names) != len(df2.columns) - 1:
+        raise ValueError("Кількість імен має відповідати кількості стовпців у DataFrame.")
+
+    # Витягуємо рядки для 'WACI rel' і '% change through 2030 rel'
+    waci_rel_row = df2.loc[df2['BV'] == 'WACI rel']
+    change_2030_rel_row = df2.loc[df2['BV'] == '% change through 2030 rel']
+
+    # Перебираємо всі колонки (крім 'BV'), витягуємо значення X і Y
+    for idx, col in enumerate(df2.columns[1:]):  # Пропускаємо колонку 'BV'
+        x_value = change_2030_rel_row[col].values[0] if not pd.isna(change_2030_rel_row[col].values[0]) else None
+        y_value = waci_rel_row[col].values[0] if not pd.isna(waci_rel_row[col].values[0]) else None
+        
+        # Перетворюємо np.float64 в стандартний float
+        x_value = float(x_value) if isinstance(x_value, np.float64) else x_value
+        y_value = float(y_value) if isinstance(y_value, np.float64) else y_value
+        # Якщо x_value не None, перетворюємо його у відсотки і округлюємо до 1 знака після коми
+        if x_value is not None:
+            x_value = round(x_value * 100, 1)
+        
+        result.append({
+            'x': x_value,
+            'y': y_value,
+            'text': names[idx]
+        })
+
+    return result
+def convert_to_json_ready(value):
+    """Функція для конвертації значень у формат, готовий до JSON."""
+    if isinstance(value, np.float64):
+        return float(value)  # Конвертуємо np.float64 у стандартний float
+    return value
+
+def waterfall_chunk(df=None, portfolio_name=None, reference_name=None):
+    print(df.head())
+    print(df.columns)
+    print(f"portfolio_name: {portfolio_name}")
+    print(f"reference_name: {reference_name}")
+    af_values = [
+        portfolio_name,
+        # "SMFE",
+        # "B&M 18-32",
+        reference_name,
+        "Portfolio relative",
+        
+        "Reference S12",
+        "Reference avoided emissions",
+        "Reference total",
+        
+        "Portfolio S12",
+        "Portfolio avoided emissions",
+        "Portfolio reduction",
+        
+        "Portfolio 2030",
+        
+        "Reference S12_a",
+        "Reference avoided emissions_a",
+        "Reference total_a",
+        
+        "Portfolio S12_b",
+        "Portfolio avoided emissions_b",
+        "Portfolio reduction_b",
+        
+        "Portfolio 2030_c"
+    ]
+    df['AF'] = None
+    df.iloc[0:0+len(af_values), df.columns.get_loc('AF')] = af_values
+    #
+    columns_to_calculate = ['AH', 'AI', 'AJ']
+    base_columns = ['Q', 'R', 'T']
+
+    df.loc[df['AF'] == portfolio_name, 'AG'] = calculate_formula_new(df, 'P', portfolio_name)
+    df.loc[df['AF'] == reference_name, 'AG'] = calculate_formula_new(df, 'P', reference_name)
+    
+    for col_base, col_target in zip(base_columns, columns_to_calculate):
+        print(f"col_target: {col_target}")
+        print(f"col_base: {col_base}")
+        df[col_target] = None
+        # print('-'*50)
+        # print(col_base)
+        # print(portfolio_name)
+        # print(calculate_formula_new(df, col_base, portfolio_name))
+        df.loc[df['AF'] == portfolio_name, col_target] = calculate_formula(df, col_base, portfolio_name)
+        # print(calculate_formula_new(df, col_base, reference_name))
+        df.loc[df['AF'] == reference_name, col_target] = calculate_formula(df, col_base, reference_name)
+        # print('-'*50)
+    # print(df[columns_to_calculate])
+    #
+    # df = automated_calculation(df=df, portfolio_name=portfolio_name, reference_name=reference_name)
+    relative_columns_to_calculate = ["AG", "AH", "AI", "AJ"]
+
+    for column in relative_columns_to_calculate:
+        df.loc[df['AF'] == 'Portfolio relative', column] = calculate_relative_difference(df, column, portfolio_name, reference_name)
+
+    df.loc[df['AF'] == 'Reference S12', 'AG'] = df.loc[df['AF'] == reference_name, 'AG'].values[0]
+    df.loc[df['AF'] == 'Reference avoided emissions', 'AG'] = df.loc[df['AF'] == reference_name, 'AH'].values[0]
+    df.loc[df['AF'] == 'Reference total', 'AG'] = (
+        df.loc[df['AF'] == 'Reference S12', 'AG'].values[0] +
+        df.loc[df['AF'] == 'Reference avoided emissions', 'AG'].values[0]
+    )
+
+    # df.loc[df['AF'] == 'Portfolio S12', 'AG'] = calculate_relative_difference(df, 'AG', 'GET', 'MSCI ACWI IMI')
+    df.loc[df['AF'] == 'Portfolio S12', 'AG'] = calculate_relative_difference(df, 'AG', portfolio_name, reference_name)
+    df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'] = df.loc[df['AF'] == portfolio_name, 'AH'].values[0] - df.loc[df['AF'] == reference_name, 'AH'].values[0]
+    df.loc[df['AF'] == 'Portfolio reduction', 'AG'] = df.loc[df['AF'] == portfolio_name, 'AJ'].values[0] - df.loc[df['AF'] == reference_name, 'AJ'].values[0]
+    df.loc[df['AF'] == 'Portfolio 2030', 'AG'] = df.loc[df['AF'] == 'Reference total', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio S12', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio reduction', 'AG'].values[0]
+
+    df.loc[df['AF'] == 'Reference S12_a', 'AG'] = df.loc[df['AF'] == 'Reference S12', 'AG'].values[0]
+    df.loc[df['AF'] == 'Reference avoided emissions_a', 'AG'] = df.loc[df['AF'] == 'Reference S12', 'AG'].values[0] + df.loc[df['AF'] == 'Reference avoided emissions', 'AG'].values[0]
+    df.loc[df['AF'] == 'Reference total_a', 'AG'] = df.loc[df['AF'] == 'Reference avoided emissions_a', 'AG'].values[0]
+
+    df.loc[df['AF'] == 'Portfolio S12_b', 'AG'] = df.loc[df['AF'] == 'Reference total_a', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio S12', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AG'] = df.loc[df['AF'] == 'Portfolio S12_b', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio reduction_b', 'AG'] = df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio 2030_c', 'AG'] = df.loc[df['AF'] == 'Portfolio 2030', 'AG'].values[0]
+
+
+    df.loc[df['AF'] == 'Reference avoided emissions_a', 'AH'] = - df.loc[df['AF'] == 'Reference avoided emissions', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio S12_b', 'AH'] = - df.loc[df['AF'] == 'Portfolio S12', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AH'] = df.loc[df['AF'] == 'Portfolio avoided emissions_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio avoided emissions', 'AG'].values[0]
+    df.loc[df['AF'] == 'Portfolio reduction_b', 'AH'] = df.loc[df['AF'] == 'Portfolio reduction_b', 'AG'].values[0] + df.loc[df['AF'] == 'Portfolio reduction', 'AG'].values[0]
+    print("#"*50)
+    print(df[['AF', 'AG', 'AH', "AI", "AJ"]].head(20))
+    print("#"*50)
+    # Створюємо словник для результатів
+    result = []
+
+
+    for row_title in ['Portfolio S12_b', 'Portfolio avoided emissions_b', 'Portfolio reduction_b', 'Portfolio 2030_c', 'Reference avoided emissions_a', 'Reference S12_a', 'Reference total_a']:
+        ag_value = df.loc[df['AF'] == row_title, 'AG'].values[0] if not df.loc[df['AF'] == row_title, 'AG'].isna().values[0] else None
+        ah_value = df.loc[df['AF'] == row_title, 'AH'].values[0] if not df.loc[df['AF'] == row_title, 'AH'].isna().values[0] else None
+
+        # Конвертуємо значення у формат, готовий для JSON
+        result.append({
+            "title": row_title.split("_")[0],
+            "AG": convert_to_json_ready(ag_value),
+            "AH": convert_to_json_ready(ah_value)
+        })
+
+    return result
+
+def calculation_waterfall(df=None, columns=None):
+    order = [
+        "Reference S12",
+        "Reference avoided emissions",
+        "Reference total",
+        "Portfolio S12",
+        "Portfolio avoided emissions",
+        "Portfolio reduction",
+        "Portfolio 2030"
+    ]
+    last_column = columns[-1]
+    output_list = []
+    for obj in columns[:-1]:
+        single = waterfall_chunk(df=df, portfolio_name=obj, reference_name=last_column)
+        sorted_data = sorted(single, key=lambda x: order.index(x['title']))
+        output_list.append(sorted_data)
+    return output_list
+
+def transform_data_for_multiple_series(data_lists):
+    result = []
+    
+    # Перевіряємо, що всі лістові мають однакову кількість рядків і категорій
+    if not all(len(data_list) == len(data_lists[0]) for data_list in data_lists):
+        raise ValueError("Всі списки даних мають мати однакову кількість рядків.")
+
+    previous_close = 0  # Ініціалізуємо попереднє значення `close` як 0
+
+    for idx in range(len(data_lists[0])):  # Проходимо по кількості рядків
+        category = data_lists[0][idx]['title']  # Витягуємо назву категорії
+        row_data = {
+            'category': category
+        }
+        
+        # Обробляємо кожен ліст (серію даних)
+        for series_idx, data_list in enumerate(data_lists):
+            open_key = f'open{series_idx + 1}'  # Динамічно генеруємо ключ для open
+            close_key = f'close{series_idx + 1}'  # Динамічно генеруємо ключ для close
+            
+            ag_value = data_list[idx]['AG'] if data_list[idx]['AG'] is not None else 0
+            ah_value = data_list[idx]['AH'] if data_list[idx]['AH'] is not None else None
+            
+            if ah_value is None:
+                # Якщо `AH` відсутнє, `open` = 0, `close` = `AG`
+                row_data[open_key] = 0
+                row_data[close_key] = ag_value
+            else:
+                # Якщо є `AH`, то `open` = попереднє значення `close`, а `close` = AG - AH
+                row_data[open_key] = ag_value
+                # row_data[close_key] = ag_value - ah_value
+                row_data[close_key] = ag_value + ah_value
+            
+            # Оновлюємо `previous_close` для наступного ряду
+            previous_close = row_data[close_key]
+
+        result.append(row_data)
+    result.insert(3, {})
+    result.insert(7, {})
+    return result
